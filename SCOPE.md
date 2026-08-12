@@ -122,9 +122,13 @@ Walkthrough" product deck. Full transcript read complete; timestamps below are t
 
 > **"I should be able to do it on Excel and the same thing should come out as output."** [56:33]
 
-**Every number in this cockpit must be reproducible by hand in Excel.** That is the acceptance test for the
-whole transparency positioning — not a nice-to-have, the bar. If a figure cannot be re-derived in a spreadsheet
-from visible inputs, it does not belong on screen.
+**Read this for the idea, not the word.** "Excel" is Lavi's shorthand for *hand-checkable arithmetic* — it is not
+a requirement to export to Excel, to restrict the math to spreadsheet functions, or to build any spreadsheet
+feature. The bar is: **every number on screen must be re-derivable by a human from inputs visible on screen**,
+with the operation shown. If a figure can't be traced back that way, it doesn't belong on screen.
+
+**Applies to the whole transcript:** it is directional input on intent, captured live in a critique of someone
+else's product. Take the underlying principle from each quote; do not turn incidental wording into a spec item.
 
 And the line that validates the entire project [84:07]:
 

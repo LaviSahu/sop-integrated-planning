@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S&amp;OP Cockpit — scenario comparison (mockup 2 of 5)</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* =============================================================================
+   02-scenario-comparison.html — MOCKUP 2 of 5 (SCOPE.md §9)
+
+   What this mockup is for: comparing scenarios STRUCTURALLY. Mockup 1 answered
+   "what happens over the 12 months"; this one answers "which plan, and what does
+   choosing it cost me".
+
+   Grammar is prescribed by SCOPE §8b, not chosen here:
+     - structural comparison  -> HORIZONTAL bars (vertical columns are reserved
+       for time series, so nothing here is a column chart)
+     - KPI vs reference       -> BULLET graph
+     - bottleneck load        -> GRADED BANDS (safe/strained/critical), never a
+       binary over-100% flag
+     - every comparison shows VARIANCE vs BASE, not just levels
+     - colour encodes variance only; scenario identity is fill pattern
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome --------------------------------------------------------------- */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- preset row (SCOPE §3: four anchor presets ship as buttons) ----------- */
+.presets { display: flex; gap: var(--sop-space-3); align-items: stretch;
+  padding: var(--sop-space-5) 0 var(--sop-space-4); flex-wrap: wrap; }
+.preset {
+  appearance: none; text-align: left; cursor: pointer; font: inherit;
+  background: var(--sop-color-surface); color: var(--sop-color-text-primary);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md);
+  padding: var(--sop-space-3) var(--sop-space-4); min-width: 208px; flex: 1 1 208px;
+}
+.preset[aria-pressed="true"] { border-color: var(--sop-color-brand); background: var(--sop-color-brand-subtle); }
+.preset[disabled] { cursor: not-allowed; opacity: 0.55; }
+.preset__id { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; display: flex; gap: 6px; align-items: center; }
+.preset__name { font-weight: 600; margin: 3px 0 2px; }
+.preset__q { color: var(--sop-color-text-secondary); font-size: var(--sop-text-small); margin: 0; }
+.tag { font-size: var(--sop-text-label); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-pill); padding: 0 7px; color: var(--sop-color-text-muted); }
+
+/* --- panels --------------------------------------------------------------- */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5); align-items: start; }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- structural comparison: label | bars | variance ----------------------- */
+.cmp { display: grid; grid-template-columns: 168px minmax(0, 1fr) 210px; gap: 0 var(--sop-space-4); }
+.cmp__colhead { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: var(--sop-space-2);
+  border-bottom: 1px solid var(--sop-color-border-strong); }
+.cmp__metric { padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border);
+  display: flex; flex-direction: column; justify-content: center; }
+.cmp__metric-name { font-size: var(--sop-text-small); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.cmp__metric-unit { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.cmp__bars, .cmp__var { padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); min-width: 0; }
+.cmp__bars svg, .cmp__var svg { display: block; width: 100%; height: auto; }
+
+.bar-label { fill: var(--sop-color-text-secondary); font-size: 10px; font-family: var(--sop-font-sans); }
+.bar-value { fill: var(--sop-color-text-primary); font-size: 10px; font-weight: 600;
+  font-family: var(--sop-font-sans); }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.mark-hit { fill: transparent; cursor: pointer; }
+
+/* --- bullet graphs -------------------------------------------------------- */
+.bullets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.bullet { min-width: 0; }
+.bullet__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sop-space-3); }
+.bullet__name { font-size: var(--sop-text-small); font-weight: 600; }
+.bullet__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+.bullet svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+
+.bandkey { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-4);
+  padding-top: var(--sop-space-3); border-top: 1px solid var(--sop-color-border);
+  font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.bandkey__item { display: flex; align-items: center; gap: 7px; }
+.bandkey__swatch { width: 20px; height: 11px; display: inline-block; border-radius: 2px; }
+
+/* --- legend --------------------------------------------------------------- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+
+.why { appearance: none; background: transparent; border: 0; padding: 0; cursor: help;
+  color: var(--sop-color-info); font: inherit; font-size: var(--sop-text-label);
+  text-decoration: underline; text-underline-offset: 2px; }
+
+/* --- rail ----------------------------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+/* --- table (design rule 13) ---------------------------------------------- */
+.tablewrap[hidden] { display: none; }
+table { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 0 var(--sop-space-3); height: var(--sop-table-row-height);
+  border-bottom: 1px solid var(--sop-color-border); }
+th:first-child, td:first-child { text-align: left; }
+thead th { background: var(--sop-table-header-bg); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+
+/* --- tooltip -------------------------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+.tip__row { display: flex; justify-content: space-between; gap: var(--sop-space-4);
+  color: var(--sop-color-text-secondary); font-variant-numeric: tabular-nums; }
+.tip__row b { color: var(--sop-color-text-primary); font-weight: 600; }
+.tip__foot { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--sop-color-border);
+  color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  .bullets { grid-template-columns: minmax(0, 1fr); }
+  .cmp { grid-template-columns: 132px minmax(0, 1fr); }
+  .cmp__var, .cmp__colhead--var { display: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="var(--sop-color-ink-soft)" stroke-width="2.2"></line>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="page">
+  <header class="topbar">
+    <div>
+      <h1 class="topbar__title" id="co">S&amp;OP Cockpit</h1>
+      <div class="topbar__sub">Scenario comparison · structural view</div>
+    </div>
+    <div class="topbar__spacer"></div>
+    <button class="iconbtn" id="tabletoggle" aria-expanded="false">Show table</button>
+    <button class="iconbtn" id="themetoggle">Light</button>
+  </header>
+
+  <section class="presets" id="presets" aria-label="Scenario presets"></section>
+
+  <div class="main">
+    <div class="stack">
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Structural comparison</h2>
+          <p class="panel__note">Levels on the left, variance vs Base on the right — never levels alone. One shared scale per metric; horizontal bars, because vertical columns are reserved for time series.</p>
+        </div>
+        <div class="cmp" id="cmp"></div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Where the plan is tight</h2>
+          <p class="panel__note">Bullet graphs against a derived reference, not a business target — Stage-4 targets do not exist in the data yet.</p>
+        </div>
+        <div class="bullets" id="bullets"></div>
+        <div class="bandkey" id="bandkey"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Where the margin actually moves</h2>
+          <p class="panel__note" id="famnote">Gross margin by family, and what rationing takes off it.</p>
+        </div>
+        <div class="cmp" id="fam"></div>
+      </section>
+
+      <section class="panel tablewrap" id="tablewrap" hidden>
+        <div class="panel__head"><h2 class="panel__title">The same comparison as a table</h2></div>
+        <table id="table"></table>
+      </section>
+
+    </div>
+
+    <aside class="rail">
+      <section class="rail__section">
+        <div class="rail__label">Reading this screen</div>
+        <ul class="rail__list" id="findings"></ul>
+      </section>
+      <section class="rail__section">
+        <div class="rail__label">Thresholds and assumptions</div>
+        <div class="rail__callout" id="assumptions"></div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span>Mockup 2 of 5 — scenario comparison.</span>
+    <span id="prov"></span>
+    <span id="stamp"></span>
+  </footer>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.SOP_DATA;
+  var SC = ["base", "constrained", "upside"];   // decision order: reference, buildable, stretch
+  var SC_LABEL = { base: "Base", constrained: "Constrained", upside: "Upside" };
+
+  function money(v) {
+    var a = Math.abs(v);
+    if (a >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+    if (a >= 1e3) return "$" + (v / 1e3).toFixed(0) + "k";
+    return "$" + v.toFixed(0);
+  }
+  function units(v) { return Math.round(v).toLocaleString("en-US"); }
+  function pct(v, dp) { return v.toFixed(dp === undefined ? 1 : dp) + "%"; }
+  function signedMoney(v) { return (v >= 0 ? "+" : "−") + money(Math.abs(v)).replace("$", "$"); }
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // Scenario identity = fill pattern, never hue (SCOPE §8b).
+  function paintScenario(el, sid) {
+    if (sid === "constrained") el.setAttribute("fill", "url(#hatch)");
+    else if (sid === "upside") el.setAttribute("fill", "var(--sop-color-ink-soft)");
+    else el.setAttribute("fill", "var(--sop-color-chart-actual)");
+  }
+
+  var tip = document.getElementById("tip");
+  function showTip(evt, head, rows, foot) {
+    tip.innerHTML = "";
+    var h = document.createElement("div"); h.className = "tip__head"; h.textContent = head; tip.appendChild(h);
+    rows.forEach(function (r) {
+      var d = document.createElement("div"); d.className = "tip__row";
+      var a = document.createElement("span"); a.textContent = r[0];
+      var b = document.createElement("b"); b.textContent = r[1];
+      d.appendChild(a); d.appendChild(b); tip.appendChild(d);
+    });
+    if (foot) { var f = document.createElement("div"); f.className = "tip__foot"; f.textContent = foot; tip.appendChild(f); }
+    tip.dataset.show = "1";
+    var x = evt.clientX + 14, y = evt.clientY + 14;
+    if (x + 300 > window.innerWidth) x = evt.clientX - 300;
+    if (y + 150 > window.innerHeight) y = evt.clientY - 150;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.dataset.show = "0"; }
+
+  // ---- derived aggregates -------------------------------------------------
+  function agg(sid) {
+    var s = D.scenarios[sid], m = s.monthly;
+    var unmet = m.reduce(function (a, r) { return a + r.unmet; }, 0);
+    var demand = m.reduce(function (a, r) { return a + r.demand; }, 0);
+    var util = s.utilization[D.bottleneck.resource_id];
+    return {
+      revenue: s.summary.total_revenue,
+      margin: s.summary.total_gross_margin,
+      lost_margin: s.summary.total_lost_margin,
+      inventory: s.summary.ending_inventory_value,
+      fill: s.summary.fill_rate * 100,
+      unmet: unmet,
+      demand: demand,
+      peak_util: Math.max.apply(null, util.map(function (r) { return r.utilization_pct; })),
+      months_over: util.filter(function (r) { return r.utilization_pct > 100; }).length
+    };
+  }
+  var A = { base: agg("base"), constrained: agg("constrained"), upside: agg("upside") };
+
+  // ---- presets (SCOPE §3) -------------------------------------------------
+  // S3 INVEST is shown but disabled: the engine has no lever surface, so faking
+  // a fourth column would put a number on screen that nothing can reproduce.
+  var PRESETS = [
+    { id: "S0", key: "base", name: "Base", q: "What does the consensus plan look like?" },
+    { id: "S1", key: "constrained", name: "Constrained", q: "What can we actually make?" },
+    { id: "S2", key: "upside", name: "Upside", q: "What if demand lands high?" },
+    { id: "S3", key: null, name: "Invest", q: "Is relieving the bottleneck worth it?",
+      tag: "not in engine", disabled: true }
+  ];
+  var focus = "constrained";
+  var presetHost = document.getElementById("presets");
+  PRESETS.forEach(function (p) {
+    var b = document.createElement("button");
+    b.className = "preset"; b.type = "button";
+    b.setAttribute("aria-pressed", String(p.key === focus));
+    if (p.disabled) b.disabled = true;
+    var id = document.createElement("div"); id.className = "preset__id";
+    id.appendChild(document.createTextNode(p.id));
+    if (p.tag) { var t = document.createElement("span"); t.className = "tag"; t.textContent = p.tag; id.appendChild(t); }
+    var nm = document.createElement("div"); nm.className = "preset__name"; nm.textContent = p.name;
+    var q = document.createElement("p"); q.className = "preset__q"; q.textContent = p.q;
+    b.appendChild(id); b.appendChild(nm); b.appendChild(q);
+    if (!p.disabled) b.addEventListener("click", function () {
+      focus = p.key; render();
+      Array.prototype.forEach.call(presetHost.children, function (c, i) {
+        c.setAttribute("aria-pressed", String(PRESETS[i].key === focus));
+      });
+    });
+    presetHost.appendChild(b);
+  });
+
+  // ---- structural comparison ---------------------------------------------
+  var METRICS = [
+    { key: "revenue", name: "Revenue", unit: "$ full year", fmt: money, goodIsUp: true,
+      why: "shipped units × unit price, summed over 12 months" },
+    { key: "margin", name: "Gross margin", unit: "$ full year", fmt: money, goodIsUp: true,
+      why: "shipped units × unit margin" },
+    { key: "lost_margin", name: "Lost margin", unit: "$ full year", fmt: money, goodIsUp: false,
+      why: "unmet units × unit margin" },
+    { key: "unmet", name: "Unmet demand", unit: "units full year", fmt: units, goodIsUp: false,
+      why: "demand − shipped, summed over 12 months" },
+    { key: "inventory", name: "Closing inventory", unit: "$ at variable cost", fmt: money, goodIsUp: false,
+      why: "December closing units × unit variable cost" },
+    { key: "fill", name: "Fill rate", unit: "% of demand served", fmt: function (v) { return pct(v, 2); },
+      goodIsUp: true, deltaUnit: "pp", why: "shipped ÷ demanded" }
+  ];
+
+  // Geometry: scenario names live in a left GUTTER, never inside the bar — a
+  // zero-length bar (Base lost margin, Base unmet) would otherwise print its
+  // label on top of its value.
+  var BW = 460, BH = 70, GUTTER = 74, BPAD_R = 74, ROWH = 18, GAP = 4;
+
+  function drawLevels(metric) {
+    var vals = SC.map(function (s) { return A[s][metric.key]; });
+    var max = Math.max.apply(null, vals);
+    var min = Math.min.apply(null, vals);
+    // Fill rate lives in a narrow band near 100 — a 0-based axis would flatten it
+    // to three identical bars, so this one metric is banded and SAYS SO on screen.
+    var lo = metric.key === "fill" ? Math.floor(min - 0.5) : 0;
+    var hi = max * 1.02 || 1;
+    var plotW = BW - GUTTER - BPAD_R;
+    var x = function (v) { return GUTTER + ((v - lo) / (hi - lo)) * plotW; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + BH, role: "img" });
+
+    SC.forEach(function (sid, i) {
+      var y = i * (ROWH + GAP) + 2, v = A[sid][metric.key];
+      var lab = svgEl("text", { x: GUTTER - 8, y: y + ROWH / 2 + 3.5, class: "bar-label", "text-anchor": "end" });
+      lab.textContent = SC_LABEL[sid];
+      svg.appendChild(lab);
+
+      var w = Math.max(0, x(v) - GUTTER);
+      if (w > 0.5) {
+        var r = svgEl("rect", { x: GUTTER, y: y, width: w, height: ROWH, rx: 1 });
+        paintScenario(r, sid);
+        svg.appendChild(r);
+      }
+
+      var val = svgEl("text", { x: GUTTER + w + 6, y: y + ROWH / 2 + 3.5, class: "bar-value" });
+      val.textContent = metric.fmt(v);
+      svg.appendChild(val);
+
+      var hit = svgEl("rect", { x: 0, y: y, width: BW, height: ROWH, class: "mark-hit" });
+      hit.addEventListener("mousemove", function (e) {
+        var d = v - A.base[metric.key];
+        showTip(e, SC_LABEL[sid] + " · " + metric.name,
+          [[metric.name, metric.fmt(v)],
+           ["vs Base", (d >= 0 ? "+" : "−") + metric.fmt(Math.abs(d)) + (metric.deltaUnit ? " " + metric.deltaUnit : "")]],
+          metric.why);
+      });
+      hit.addEventListener("mouseleave", hideTip);
+      svg.appendChild(hit);
+    });
+
+    svg.appendChild(svgEl("line", { x1: GUTTER, y1: 0, x2: GUTTER, y2: BH - 10, class: "axis-line" }));
+    if (lo !== 0) {
+      var z = svgEl("text", { x: GUTTER, y: BH - 2, class: "tick-text" });
+      z.textContent = "axis starts at " + metric.fmt(lo) + ", not zero";
+      svg.appendChild(z);
+    }
+    return svg;
+  }
+
+  // Variance panel: shared zero line, colour + glyph, both sides of zero.
+  // Base is the reference, so it gets a muted "reference" row rather than a
+  // meaningless "no change" bar against itself.
+  function drawVariance(metric) {
+    var deltas = SC.map(function (s) { return A[s][metric.key] - A.base[metric.key]; });
+    var span = Math.max.apply(null, deltas.map(Math.abs)) || 1;
+    // Value labels are right-aligned in a reserved strip, so nothing can clip.
+    var W = 230, LABEL_W = 92, mid = 26, plotW = W - LABEL_W - mid - 6;
+    var x = function (d) { return mid + (d / span) * plotW; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + BH, role: "img" });
+
+    svg.appendChild(svgEl("line", { x1: mid, y1: 0, x2: mid, y2: BH - 10, class: "axis-line" }));
+
+    SC.forEach(function (sid, i) {
+      var y = i * (ROWH + GAP) + 2, d = deltas[i];
+      var isBase = sid === "base";
+      var flat = Math.abs(d) < 1e-9;
+      var good = metric.goodIsUp ? d > 0 : d < 0;
+      if (!isBase && !flat) {
+        var x0 = Math.min(mid, x(d)), w = Math.abs(x(d) - mid);
+        svg.appendChild(svgEl("rect", {
+          x: x0, y: y + 4, width: Math.max(1.5, w), height: ROWH - 8, rx: 1,
+          fill: good ? "var(--sop-color-good)" : "var(--sop-color-bad)"
+        }));
+      }
+      var t = svgEl("text", {
+        x: W - 2, y: y + ROWH / 2 + 3.5, class: "bar-value", "text-anchor": "end",
+        fill: isBase || flat ? "var(--sop-color-text-muted)"
+          : good ? "var(--sop-color-good)" : "var(--sop-color-bad)"
+      });
+      t.textContent = isBase ? "reference"
+        : flat ? "▬ no change"
+        : (d > 0 ? "▲ +" : "▼ −") + metric.fmt(Math.abs(d)) + (metric.deltaUnit ? " " + metric.deltaUnit : "");
+      svg.appendChild(t);
+    });
+    return svg;
+  }
+
+  function render() {
+    var cmp = document.getElementById("cmp");
+    cmp.innerHTML = "";
+    ["Metric", "Level — shared scale per metric", "Variance vs Base"].forEach(function (h, i) {
+      var d = document.createElement("div");
+      d.className = "cmp__colhead" + (i === 2 ? " cmp__colhead--var" : "");
+      d.textContent = h; cmp.appendChild(d);
+    });
+    METRICS.forEach(function (m) {
+      var lab = document.createElement("div"); lab.className = "cmp__metric";
+      var nm = document.createElement("div"); nm.className = "cmp__metric-name";
+      nm.appendChild(document.createTextNode(m.name));
+      var w = document.createElement("button"); w.className = "why"; w.type = "button";
+      w.textContent = "why?"; w.title = m.why + " — full derivation is mockup 3";
+      nm.appendChild(w);
+      var un = document.createElement("div"); un.className = "cmp__metric-unit"; un.textContent = m.unit;
+      lab.appendChild(nm); lab.appendChild(un);
+      var bars = document.createElement("div"); bars.className = "cmp__bars"; bars.appendChild(drawLevels(m));
+      var vr = document.createElement("div"); vr.className = "cmp__var"; vr.appendChild(drawVariance(m));
+      cmp.appendChild(lab); cmp.appendChild(bars); cmp.appendChild(vr);
+    });
+    renderBullets();
+    renderFamilies();
+  }
+
+  // ---- bullet graphs with graded bands ------------------------------------
+  // Bands are OUR thresholds, so they are stated in the rail, not hidden.
+  // Band tints are set here rather than reused from the -bg tokens: those are
+  // 0.12 alpha, tuned for chip backgrounds, and vanish under a hatched mark.
+  var BANDS = [
+    { to: 85, label: "safe", fill: "rgba(52, 211, 153, 0.20)" },
+    { to: 100, label: "strained", fill: "rgba(251, 191, 36, 0.22)" },
+    { to: 125, label: "critical", fill: "rgba(248, 113, 113, 0.26)" }
+  ];
+
+  function bulletSvg(value, maxScale, refValue, refLabel, fmt, sid) {
+    var W = 400, H = 36, LABEL_W = 54, plotW = W - LABEL_W;
+    var x = function (v) { return (v / maxScale) * plotW; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, role: "img" });
+    var prev = 0;
+    BANDS.forEach(function (b) {
+      svg.appendChild(svgEl("rect", { x: x(prev), y: 2, width: Math.max(0, x(Math.min(b.to, maxScale)) - x(prev)),
+        height: 20, fill: b.fill }));
+      if (prev > 0) {
+        svg.appendChild(svgEl("line", { x1: x(prev), y1: 2, x2: x(prev), y2: 22,
+          stroke: "var(--sop-color-canvas)", "stroke-width": 1 }));
+      }
+      prev = b.to;
+    });
+    // measure bar — ink and pattern, not hue: the bands already carry the state
+    var m = svgEl("rect", { x: 0, y: 8.5, width: Math.max(2, x(value)), height: 7, rx: 1 });
+    paintScenario(m, sid);
+    svg.appendChild(m);
+    // reference tick, drawn over everything
+    svg.appendChild(svgEl("line", { x1: x(refValue), y1: 0, x2: x(refValue), y2: 24,
+      stroke: "var(--sop-color-text-primary)", "stroke-width": 2 }));
+    var rl = svgEl("text", { x: x(refValue) - 4, y: 33, class: "tick-text", "text-anchor": "end" });
+    rl.textContent = refLabel;
+    svg.appendChild(rl);
+    // value sits in its own reserved strip — never over the bands
+    var vl = svgEl("text", { x: W, y: 16, class: "bar-value", "text-anchor": "end" });
+    vl.textContent = fmt(value);
+    svg.appendChild(vl);
+    return svg;
+  }
+
+  function renderBullets() {
+    var host = document.getElementById("bullets");
+    host.innerHTML = "";
+    var items = D.resources.map(function (r) {
+      var rows = D.scenarios[focus].utilization[r.id];
+      var peak = Math.max.apply(null, rows.map(function (x) { return x.utilization_pct; }));
+      var over = rows.filter(function (x) { return x.utilization_pct > 100; }).length;
+      return { name: r.name, value: peak, sub: over + " of 12 months over capacity",
+               fmt: function (v) { return pct(v); }, ref: 100, refLabel: "capacity", max: 125 };
+    });
+    items.push({
+      name: "Fill rate", value: A[focus].fill, sub: "reference is full demand served, not a business target",
+      fmt: function (v) { return pct(v, 2); }, ref: 100, refLabel: "all demand", max: 125, isFill: true
+    });
+
+    items.forEach(function (it) {
+      var d = document.createElement("div"); d.className = "bullet";
+      var h = document.createElement("div"); h.className = "bullet__head";
+      var n = document.createElement("span"); n.className = "bullet__name"; n.textContent = it.name;
+      var s = document.createElement("span"); s.className = "bullet__sub"; s.textContent = it.sub;
+      h.appendChild(n); h.appendChild(s); d.appendChild(h);
+      d.appendChild(bulletSvg(it.value, it.max, it.ref, it.refLabel, it.fmt, focus));
+      host.appendChild(d);
+    });
+
+    var key = document.getElementById("bandkey");
+    key.innerHTML = "";
+    BANDS.forEach(function (b, i) {
+      var prev = i === 0 ? 0 : BANDS[i - 1].to;
+      var el = document.createElement("span"); el.className = "bandkey__item";
+      el.innerHTML = '<span class="bandkey__swatch" style="background:' + b.fill +
+        ';border:1px solid var(--sop-color-border-strong)"></span><span>' +
+        b.label + " — " + prev + "–" + b.to + "%</span>";
+      key.appendChild(el);
+    });
+    var f = document.createElement("span"); f.className = "bandkey__item";
+    f.innerHTML = '<span style="color:var(--sop-color-text-muted)">Showing: <strong style="color:var(--sop-color-text-primary)">' +
+      SC_LABEL[focus] + "</strong> — pick a preset above to switch</span>";
+    key.appendChild(f);
+  }
+
+  // ---- family detail ------------------------------------------------------
+  function renderFamilies() {
+    var host = document.getElementById("fam");
+    host.innerHTML = "";
+    ["Family", "Gross margin — shared scale", "Margin lost to rationing"].forEach(function (h, i) {
+      var d = document.createElement("div");
+      d.className = "cmp__colhead" + (i === 2 ? " cmp__colhead--var" : "");
+      d.textContent = h; host.appendChild(d);
+    });
+
+    var recon = {};
+    SC.forEach(function (s) {
+      recon[s] = {};
+      D.scenarios[s].reconciliation.forEach(function (r) { recon[s][r.family_id] = r; });
+    });
+    var fams = D.scenarios.base.reconciliation.slice().sort(function (a, b) {
+      return b.gross_margin - a.gross_margin;
+    });
+    var maxGM = Math.max.apply(null, SC.map(function (s) {
+      return Math.max.apply(null, D.scenarios[s].reconciliation.map(function (r) { return r.gross_margin; }));
+    }));
+    var maxLost = Math.max.apply(null, D.scenarios[focus].reconciliation.map(function (r) { return r.lost_margin; })) || 1;
+
+    fams.forEach(function (f) {
+      var lab = document.createElement("div"); lab.className = "cmp__metric";
+      var nm = document.createElement("div"); nm.className = "cmp__metric-name"; nm.textContent = f.family_name;
+      var un = document.createElement("div"); un.className = "cmp__metric-unit";
+      un.textContent = "$" + f.unit_margin + " margin / unit";
+      lab.appendChild(nm); lab.appendChild(un);
+
+      // Family bars: scenario labels in left GUTTER, value labels in right strip.
+      // Same pattern as the metric-level bars so the reader gets the same reading rhythm.
+      var FW = 460, FH = 48, FG = 74, FR = 74, fplotW = FW - FG - FR, rowh = 12, gap = 3;
+      var fsvg = svgEl("svg", { viewBox: "0 0 " + FW + " " + FH, role: "img" });
+      SC.forEach(function (sid, i) {
+        var r = recon[sid][f.family_id];
+        var y = i * (rowh + gap) + 2;
+        var fx = function (v) { return FG + (v / maxGM) * fplotW; };
+        // Scenario label in the gutter
+        var fl = svgEl("text", { x: FG - 8, y: y + rowh / 2 + 3, class: "bar-label", "text-anchor": "end" });
+        fl.textContent = SC_LABEL[sid];
+        fsvg.appendChild(fl);
+        var fw = Math.max(0, fx(r.gross_margin) - FG);
+        if (fw > 0.5) {
+          var bar = svgEl("rect", { x: FG, y: y, width: fw, height: rowh, rx: 1 });
+          paintScenario(bar, sid);
+          fsvg.appendChild(bar);
+        }
+        var ft = svgEl("text", { x: FG + fw + 6, y: y + rowh / 2 + 3.5, class: "bar-value" });
+        ft.textContent = money(r.gross_margin);
+        fsvg.appendChild(ft);
+        var hit = svgEl("rect", { x: 0, y: y, width: FW, height: rowh, class: "mark-hit" });
+        hit.addEventListener("mousemove", function (e) {
+          showTip(e, f.family_name + " · " + SC_LABEL[sid],
+            [["Gross margin", money(r.gross_margin)],
+             ["Shipped", units(r.shipped_units) + " u"],
+             ["Unmet", units(r.unmet_units) + " u"],
+             ["Fill rate", pct(r.fill_rate_pct, 2)]],
+            "shipped units × $" + f.unit_margin + " unit margin");
+        });
+        hit.addEventListener("mouseleave", hideTip);
+        fsvg.appendChild(hit);
+      });
+      fsvg.appendChild(svgEl("line", { x1: FG, y1: 0, x2: FG, y2: FH - 6, class: "axis-line" }));
+      var bars = document.createElement("div"); bars.className = "cmp__bars"; bars.appendChild(fsvg);
+
+      // Lost margin under the focused scenario — hue is legal, this is variance.
+      // Same LABEL_W pattern as the variance panel for consistent right-edge alignment.
+      var lost = recon[focus][f.family_id].lost_margin;
+      var LW = 230, LLW = 92, lmid = 26, lplotW = LW - LLW - lmid - 6;
+      var lsvg = svgEl("svg", { viewBox: "0 0 " + LW + " " + FH, role: "img" });
+      lsvg.appendChild(svgEl("line", { x1: lmid, y1: 0, x2: lmid, y2: FH - 6, class: "axis-line" }));
+      if (lost > 0) {
+        var lx = lmid + (lost / maxLost) * lplotW;
+        lsvg.appendChild(svgEl("rect", { x: lmid, y: 14, width: Math.max(2, lx - lmid),
+          height: 12, rx: 1, fill: "var(--sop-color-bad)" }));
+      }
+      var lt = svgEl("text", { x: LW - 2, y: 24, class: "bar-value", "text-anchor": "end",
+        fill: lost > 0 ? "var(--sop-color-bad)" : "var(--sop-color-text-muted)" });
+      lt.textContent = lost > 0 ? "▼ −" + money(lost) : "▬ none";
+      lsvg.appendChild(lt);
+      var vr = document.createElement("div"); vr.className = "cmp__var"; vr.appendChild(lsvg);
+
+      host.appendChild(lab); host.appendChild(bars); host.appendChild(vr);
+    });
+
+    document.getElementById("famnote").textContent =
+      "Gross margin by family under each scenario, plus what rationing takes off " + SC_LABEL[focus] +
+      ". Sorted by Base margin — the rationing rule follows unit margin, so the order is the priority order.";
+  }
+
+  // ---- legend -------------------------------------------------------------
+  var lg = document.getElementById("legend");
+  [
+    { html: '<span class="legend__swatch" style="background:var(--sop-color-chart-actual)"></span>', text: "Base — solid" },
+    { html: '<svg class="legend__swatch" viewBox="0 0 20 11"><rect width="20" height="11" fill="url(#hatch)"/></svg>', text: "Constrained — hatched" },
+    { html: '<span class="legend__swatch" style="background:var(--sop-color-ink-soft)"></span>', text: "Upside — light solid" },
+    { html: '<span class="delta delta--good">▲</span>', text: "better than Base" },
+    { html: '<span class="delta delta--bad">▼</span>', text: "worse than Base" }
+  ].forEach(function (it) {
+    var d = document.createElement("span"); d.className = "legend__item";
+    d.innerHTML = it.html + "<span>" + it.text + "</span>";
+    lg.appendChild(d);
+  });
+
+  // ---- rail ---------------------------------------------------------------
+  var lostVsUpside = A.upside.margin - A.constrained.margin;
+  var findings = [
+    { dot: "info", html: "<strong>Upside is not a choice, it is a forecast.</strong> It assumes infinite capacity — " +
+        "it carries no capacity check, so treat it as the ceiling, not a plan." },
+    { dot: "warn", html: "Constrained gives up <strong>" + money(lostVsUpside) + "</strong> of Upside margin — " +
+        pct((lostVsUpside / A.upside.margin) * 100, 2) + " of it. That is the price of the current capacity." },
+    { dot: "bad", html: "<strong>" + D.bottleneck.resource_name + "</strong> peaks at " +
+        pct(A.constrained.peak_util) + " and is over capacity in <strong>" + A.constrained.months_over +
+        " of 12 months</strong>. Nothing else binds." },
+    { dot: "good", html: "Rationing is working as designed: it protects high-margin families first, so margin falls " +
+        "slower than volume — fill drops " + (A.base.fill - A.constrained.fill).toFixed(2) +
+        " pp while margin drops " + pct((1 - A.constrained.margin / A.upside.margin) * 100, 2) + " vs Upside." },
+    { dot: "info", html: "<strong>S3 Invest is not buildable yet.</strong> It needs an added-hours lever and a cost " +
+        "line in the P&amp;L; the engine has no lever surface, so it is shown disabled rather than faked." }
+  ];
+  var fh = document.getElementById("findings");
+  findings.forEach(function (f) {
+    var li = document.createElement("li"); li.className = "rail__item";
+    var d = document.createElement("span"); d.className = "dot dot--" + f.dot;
+    var t = document.createElement("span"); t.innerHTML = f.html;
+    li.appendChild(d); li.appendChild(t); fh.appendChild(li);
+  });
+
+  document.getElementById("assumptions").innerHTML =
+    "<strong>Band thresholds are ours, not the data's:</strong> safe &lt;85%, strained 85–100%, critical &gt;100% " +
+    "of available hours. <strong>No business target exists</strong> for fill rate or margin — " +
+    "<code>families.json</code> carries none, so every reference on this screen is derived (100% = all demand served, " +
+    "100% = all available hours). Gap-to-plan needs a target input before it can be claimed.";
+
+  // ---- table --------------------------------------------------------------
+  var t = document.getElementById("table");
+  var head = "<thead><tr><th>Metric</th>" + SC.map(function (s) { return "<th>" + SC_LABEL[s] + "</th>"; }).join("") +
+    "<th>Constrained vs Base</th></tr></thead>";
+  var body = "<tbody>" + METRICS.map(function (m) {
+    var d = A.constrained[m.key] - A.base[m.key];
+    var flat = Math.abs(d) < 1e-9;
+    var good = m.goodIsUp ? d > 0 : d < 0;
+    return "<tr><td>" + m.name + "</td>" +
+      SC.map(function (s) { return "<td>" + m.fmt(A[s][m.key]) + "</td>"; }).join("") +
+      '<td class="delta ' + (flat ? "delta--flat" : good ? "delta--good" : "delta--bad") + '">' +
+      (flat ? "▬ 0" : (d > 0 ? "▲ +" : "▼ −") + m.fmt(Math.abs(d)) + (m.deltaUnit ? " " + m.deltaUnit : "")) +
+      "</td></tr>";
+  }).join("") + "</tbody>";
+  t.innerHTML = head + body;
+
+  var tw = document.getElementById("tablewrap"), tb = document.getElementById("tabletoggle");
+  tb.addEventListener("click", function () {
+    var open = tw.hasAttribute("hidden");
+    if (open) tw.removeAttribute("hidden"); else tw.setAttribute("hidden", "");
+    tb.setAttribute("aria-expanded", String(open));
+    tb.textContent = open ? "Hide table" : "Show table";
+  });
+
+  var th = document.getElementById("themetoggle");
+  th.addEventListener("click", function () {
+    var light = document.documentElement.getAttribute("data-theme") === "light";
+    document.documentElement.setAttribute("data-theme", light ? "dark" : "light");
+    th.textContent = light ? "Light" : "Dark";
+  });
+
+  document.getElementById("co").textContent = "S&OP Cockpit — " + D.company;
+  document.getElementById("prov").textContent =
+    D.families.length + " families · " + D.resources.length + " resources · every figure from the engine, via mockups/build_data.py";
+  document.getElementById("stamp").textContent = "Generated " + new Date(D.generated_at).toLocaleString();
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,262 +1,325 @@
 /* =============================================================================
    tokens.css — IBCS-style S&OP planning-cockpit design tokens
    =============================================================================
-   Grounded in 6 reference screenshots (all frames of one "KitchenOS" product
-   pitch deck / dashboard demo, NOT an S&OP tool — see report). Referenced
-   below by short id:
-     A = SCR-20260805-tadk.png   — cross-edition "moat" network diagram
-     B = SCR-20260805-smhs.png   — KPI row + trend chart + "UOKG Explain" drawer
-     C = SCR-20260805-slam.png   — execution-plan approval screen
-     D = SCR-20260805-syiu.png   — 4-agent verdict/confidence cards
-     E = SCR-20260805-slit.png   — "how this number was produced" drill-down modal
-     F = SCR-20260805-slxk.jpeg  — data-pipeline architecture (Sankey + health cards)
+   DARK-PRIMARY REWRITE (2026-08-12). This file previously shipped
+   light-primary, inverted from dark reference screenshots — backwards for a
+   cockpit meant to sit open on a screen for hours. Flipped: dark is now the
+   default appearance, light is an explicit opt-in override (see the
+   [data-theme="light"] block near the end). Structure and the `sop-` prefix
+   are unchanged from the previous version.
 
-   IMPORTANT — this file lives in mockups/ as a DESIGN EXPLORATION. The
-   project's frozen production spec (../DESIGN.md) already defines a
-   different, dark-default token set (--page/--surface/--ink/--s1..s8) for
-   output/dashboard.html. Do not mix the two: this file uses an `sop-`
-   prefix and its own light-primary discipline per the brief that produced
-   it, and is not wired into the build.
+   Grounded in 4 reference screenshots, referenced below by short id:
+     A = SCR-20260805-tadk.png — cross-edition "moat" network + the
+         TRANSFER CONFIDENCE legend (line thickness = confidence tier,
+         dashed = experimental / low confidence)
+     B = SCR-20260805-smhs.png — three-lens canvas: KPI tile row, KPI
+         Health status-dot list, UOKG Explain decomposition drawer,
+         narrative rail
+     C = SCR-20260805-syiu.png — 4-agent verdict cards + confidence chips
+     D = SCR-20260805-slit.png — "how this number was produced" provenance
+         modal + narrative rail with a bordered callout box
 
-   Every token below is commented "from screenshot X: ..." (directly
-   observed) or "derived: ..." (no direct screenshot evidence — inferred
-   from IBCS convention or built for consistency). Nothing is invented
-   without a comment saying so.
+   RESTRAINED HUE POLICY — why this palette is short: across A/B/C/D the
+   source deck uses 6+ decorative hues (A alone colors five edition nodes
+   orange/blue/green/purple/amber purely for visual variety, with no data
+   meaning tied to the hue itself — that is deck styling, not notation). A
+   planning cockpit is read for numbers under time pressure, so hue is
+   budgeted to exactly 5 slots: one BRAND accent (identity/navigation only,
+   never a data series) plus four SEMANTIC colors — good / bad / warn /
+   info. Every other colored element in the screenshots (edition badges,
+   agent-card left borders, network-node rings) is reproduced here as
+   NEUTRAL INK instead, distinguished by weight, fill style, or line
+   pattern rather than hue. Enforced token-by-token below, not just stated
+   here — every color token's comment says which of the 5 slots it fills.
+
+   NO GLOW: A's node rings and B's purple-glow "focused" KPI tile both use
+   a soft, blurred, tinted box-shadow — decorative "sci-fi product demo"
+   glow. Dropped on purpose: it doesn't export to PDF/print predictably,
+   and it opens a second, non-semantic color channel that competes with
+   the good/bad/warn/info signal a reader actually needs to trust. Depth
+   instead comes from --sop-color-surface elevation plus a 1px hairline
+   border; where a shadow exists at all (modal separation, focus ring) it
+   is small and 0-to-2px blur — never a bloom.
+
+   Every token is commented "from X.png: ..." (directly observed) or
+   "derived: ..." (no direct screenshot evidence — inferred from IBCS
+   convention or built for internal consistency). Nothing is invented
+   without a comment saying so. Still lives in mockups/ as a DESIGN
+   EXPLORATION, not wired into the build — the frozen production token set
+   is in ../DESIGN.md.
    ========================================================================= */
 
 :root {
 
   /* ---------------------------------------------------------------------
      1. SURFACE / BACKGROUND
-     All 6 screenshots use a near-black canvas with slightly lighter card
-     surfaces — evidence for a dark variant (see prefers-color-scheme block
-     at the bottom). Values here are the LIGHT-THEME primary, derived by
-     inverting the screenshots' dark hierarchy while preserving the same
-     canvas-vs-surface-vs-sunken relationship (canvas darkest of the three
-     greys in dark mode -> canvas lightest of the three in light mode).
+     canvas -> surface -> surface-raised is a 3-step lift, each step a
+     hairline border, never a shadow-only lift.
      --------------------------------------------------------------------- */
-  --sop-color-canvas:          #f7f7f8; /* derived: light inversion of the near-black page bg seen in A/B/C/D/E/F (~#0a0b0f) */
-  --sop-color-surface:         #ffffff; /* derived: light inversion of card fill, e.g. B's KPI-tile fill (~#14161e on dark) */
-  --sop-color-surface-sunken:  #eef0f3; /* derived: for table stripes / inset rows, e.g. E's numbered pipeline-step rows sit one shade off the modal bg */
-  --sop-color-border:          #e1e3e8; /* derived: inversion of the thin low-opacity hairline card borders visible in B/C/D/F */
-  --sop-color-border-strong:   #c7cad2; /* derived: heavier divider, e.g. under a table header row (no light-theme evidence, built for hierarchy) */
+  --sop-color-canvas:          #0a0b0f; /* from A/B/C/D: near-black page background behind every card */
+  --sop-color-surface:         #14161e; /* from B/C: KPI-tile / agent-card fill, one step lighter than canvas */
+  --sop-color-surface-sunken:  #0f1116; /* from D: inset numbered pipeline-step rows sit slightly darker than the modal surface */
+  --sop-color-surface-raised:  #181b26; /* from D: the provenance modal itself reads one step lighter than a plain card, sitting on a dimmed page */
+  --sop-color-scrim:           rgba(6, 7, 10, 0.72); /* from D: the page behind "How this number was produced" is dimmed, not just covered */
+  --sop-color-border:          rgba(255, 255, 255, 0.08); /* from B/C/D: thin, low-opacity hairline card borders throughout */
+  --sop-color-border-strong:   rgba(255, 255, 255, 0.16); /* derived: heavier divider, e.g. under a table header row */
+  --sop-color-step-connector:  rgba(255, 255, 255, 0.14); /* from D: the connector between the 5 numbered provenance steps */
 
   /* ---------------------------------------------------------------------
      2. TEXT HIERARCHY
      --------------------------------------------------------------------- */
-  --sop-color-text-primary:    #14161c; /* from screenshot B/E: KPI numbers and headlines render near-white (#ffffff) on the dark canvas; inverted to near-black for a white surface */
-  --sop-color-text-secondary:  #4a4f5b; /* from screenshot B: chart-legend / body copy grey (~#9aa0ab on dark), darkened to hold 4.5:1 on white */
-  --sop-color-text-muted:      #868c98; /* from screenshot A/C/F: tracked-uppercase micro-labels ("TRANSFER CONFIDENCE", "TOKEN COST", "DATA SOURCES") render as a dim, desaturated grey even against black */
-  --sop-color-text-inverse:    #f5f6f8; /* derived: for text set on a filled dark/brand chip (status pills, primary buttons) */
+  --sop-color-text-primary:    #f5f6f8; /* from B/D: headline and KPI-number near-white */
+  --sop-color-text-secondary:  #9aa0ab; /* from B: chart-legend / narrative-rail body copy grey */
+  --sop-color-text-muted:      #828997; /* from A/C: dim tracked-uppercase micro-labels ("TRANSFER CONFIDENCE", "VERDICT"). Lifted from the screenshot's #6b7280, which measured 3.73:1 on surface — under AA for 11px text. Now 5.14:1 surface / 4.88:1 raised / 5.60:1 canvas. */
+  --sop-color-text-inverse:    #14161c; /* derived: text set on a solid-fill light chip (e.g. a filled status pill) */
 
   /* ---------------------------------------------------------------------
-     3. BRAND / ACCENT HUE
-     Purple recurs as the one "identity" color across the deck: the ACT
-     chip and hex-badge logo in A, the "Explain" mode dot and UOKG icon in
-     B, the numbered-step ring in C, the Simulation-Agent icon in D — i.e.
-     it marks navigation/identity, not data. Kept as a single brand hue,
-     used sparingly (selected-tab underline, focus ring, one logo mark) —
-     never as a data-series color, which is exactly how the screenshots
-     use it.
+     3. BRAND / ACCENT HUE — the ONE decorative hue in the system (see the
+     restrained-hue policy above). Purple recurs as pure identity/nav
+     across the deck, never as a data-series color: the ACT chip in A, the
+     "Explain" mode dot + UOKG drawer icon in B, the Simulation-Agent card
+     in C. Used sparingly here too: selected-tab underline, focus ring,
+     one icon — never a chart series.
      --------------------------------------------------------------------- */
-  --sop-color-brand:           #6d28d9; /* from screenshot A/B/D: purple accent (~#8b5cf6/#a855f7 on dark), darkened for 4.5:1+ contrast on white */
-  --sop-color-brand-subtle:    #efe9fc; /* derived: tint of brand for selected-nav/focus backgrounds */
+  --sop-color-brand:           #a78bfa; /* from A/B/C: purple accent, read directly off the dark screenshots */
+  --sop-color-brand-subtle:    rgba(167, 139, 250, 0.16); /* derived: tint for selected-nav/focus backgrounds */
 
   /* ---------------------------------------------------------------------
-     4. IBCS NOTATION INK — actual / plan / forecast
-     None of the 6 screenshots contain real IBCS bar/variance notation
-     (no scenario bars at all). This whole block is therefore DERIVED from
-     IBCS convention, not observed: one neutral ink color for all three
-     scenario types, distinguished by FILL STYLE (solid / outline / hatch),
-     never by hue — hue is reserved entirely for the good/bad variance
-     signal below. This also matches the one thing the screenshots DO
-     support: text/ink tokens are kept separate from the brand/series
-     colors throughout (labels and numbers are always neutral grey/white,
-     never tinted with a series color).
+     4. IBCS NOTATION INK — actual / plan / forecast / previous year
+     None of the 4 screenshots contain real IBCS bar/variance notation (no
+     scenario bars anywhere in the deck). This whole block is therefore
+     DERIVED from IBCS convention: one neutral ink, distinguished by FILL
+     STYLE and WEIGHT alone, never by hue — hue stays reserved entirely
+     for the good/bad/warn/info signal in section 5.
      --------------------------------------------------------------------- */
-  --sop-color-ink:              #14161c; /* derived: same value as --sop-color-text-primary, one ink for actual/plan/forecast */
-  --sop-color-ink-soft:         #9096a3; /* derived: lighter tint of ink for forecast hatch strokes and outline fills */
+  --sop-color-ink:              #f5f6f8; /* derived: same value as --sop-color-text-primary — actual = solid fill in this ink, plan/budget = outline stroke in this ink */
+  --sop-color-ink-soft:         #8b90a0; /* derived: mid-grey — forecast = hatched fill in this ink */
+  --sop-color-ink-faint:        #646a78; /* derived: dimmest grey — previous year = flat SOLID fill in this ink ("light solid": present, but visually receded behind actual). Lifted from #565b68, which measured 2.66:1 on surface — under the 3:1 non-text floor for a data mark. Now 3.33:1 surface / 3.17:1 raised. */
 
   /* ---------------------------------------------------------------------
-     5. SEMANTIC PAIR — variance good / bad
-     Clearest direct evidence in the set: screenshot B's KPI deltas
-     (▲12.4%, ▲12.0% in green; ▼2.1% in red/orange) and screenshot D's
-     verdict pills (green "Primary cause"/"Validates Market" vs the red
-     "Causes" node in B's decomposition tree). Kept as a real hue pair
-     because the source clearly intends one, BUT per the task's
-     accessibility requirement this pair is NEVER used alone in the
-     utility classes below: .variance-positive/.variance-negative always
-     render a ▲/▼ glyph via ::before AND a weight difference is available
-     via a data attribute, so the signal survives grayscale printing and
-     the ~8% of men with red-green color-vision deficiency. Contrast:
-     both --sop-color-good and --sop-color-bad are tuned to >=4.5:1 against
-     --sop-color-surface (WCAG AA for normal text).
+     5. SEMANTIC PAIR/QUAD — good / bad / warn / info
+     Clearest direct evidence in the set: B's KPI deltas (▲12.4%/▲12.0% in
+     green, ▼2.1% in red-adjacent), C's verdict chips (green "Primary
+     cause"/"Validates Market" vs amber "Correlation only"), D's amber
+     "WARNING (-5.8%)" and green "HIGH" confidence badge, and B/D's blue
+     hyperlinks + tab indicator. Per the task's accessibility requirement
+     this pair is NEVER carried by hue alone in the utility classes below:
+     .variance-positive/.variance-negative always render a ▲/▼ glyph via
+     ::before (section 15), and .status-dot is always paired with text,
+     never shown alone (section 13).
      --------------------------------------------------------------------- */
-  --sop-color-good:             #1a7a42; /* from screenshot B: up-delta green (~#22c55e/#4ade80 on dark), darkened for AA on white */
-  --sop-color-good-bg:          #e7f5eb; /* derived: tint for good-variance table-cell backgrounds */
-  --sop-color-bad:              #b3261e; /* from screenshot B/D: down-delta / "Causes" red (~#ef4444 on dark), darkened for AA on white */
-  --sop-color-bad-bg:           #fbeae8; /* derived: tint for bad-variance table-cell backgrounds */
-  --sop-color-warn:             #966107; /* from screenshot C/E: amber "HITL" / "REQUIRES HUMAN APPROVAL" pill (~#f59e0b on dark), darkened for AA */
-  --sop-color-warn-bg:          #fdf2dc; /* derived: tint for warning-row backgrounds */
-  --sop-color-info:             #1d4ed8; /* from screenshot B: blue "Understand" tab / link color (~#3b82f6 on dark) */
-  --sop-color-info-bg:          #e9eefc; /* derived: tint for info-row / selected-cell backgrounds */
+  --sop-color-good:             #34d399; /* from B: up-delta green, e.g. "▲12.4%" */
+  --sop-color-good-bg:          rgba(52, 211, 153, 0.12);
+  --sop-color-bad:              #f87171; /* from B/C: down-delta / "Causes" red */
+  --sop-color-bad-bg:           rgba(248, 113, 113, 0.12);
+  --sop-color-warn:             #fbbf24; /* from C/D: amber "Below target" dot, "WARNING (-5.8%)", HITL/approval-required pill */
+  --sop-color-warn-bg:          rgba(251, 191, 36, 0.12);
+  --sop-color-info:             #22d3ee; /* from B/D: "Understand" tab dot, "Why?"/provenance hyperlinks. Moved off the screenshot's #60a5fa blue, which measured ΔE 10.2 (normal vision) / 0.3 (deutan) against the brand purple — indistinguishable. Cyan measures ΔE 21.2 normal / 11.4 deutan, and 9.99:1 on surface. */
+  --sop-color-info-bg:          rgba(34, 211, 238, 0.12);
 
   /* ---------------------------------------------------------------------
      6. CHART INK
      --------------------------------------------------------------------- */
-  --sop-color-chart-grid:       #e8e9ec; /* derived: faint gridline, analogous weight to --sop-color-border */
-  --sop-color-chart-axis:       #b8bcc6; /* derived: axis line/tick color, one step darker than grid */
-  --sop-color-chart-actual:     var(--sop-color-ink);      /* derived: actual series = solid ink, see .mark-actual */
-  --sop-color-chart-plan:       var(--sop-color-ink);      /* derived: plan series = same ink, OUTLINE only, see .mark-plan */
-  --sop-color-chart-forecast:   var(--sop-color-ink-soft); /* derived: forecast series = lighter ink, HATCHED, see .mark-forecast */
-  --sop-color-chart-highlight:  var(--sop-color-brand);    /* from screenshot B: the one purple-outlined, "currently selected" KPI tile — used to mark the single focused metric on a chart, sparingly */
+  --sop-color-chart-grid:       rgba(255, 255, 255, 0.06); /* derived: faint gridline */
+  --sop-color-chart-axis:       rgba(255, 255, 255, 0.16); /* derived: axis line/tick, one step stronger than grid */
+  --sop-color-chart-actual:     var(--sop-color-ink);       /* derived: actual = solid ink fill, see .mark-actual */
+  --sop-color-chart-plan:       var(--sop-color-ink);       /* derived: plan/budget = same ink, OUTLINE only, see .mark-plan */
+  --sop-color-chart-forecast:   var(--sop-color-ink-soft);  /* derived: forecast = lighter ink, HATCHED, see .mark-forecast */
+  --sop-color-chart-prior-year: var(--sop-color-ink-faint); /* derived: previous year = faintest ink, flat SOLID fill, see .mark-prior-year */
+  --sop-color-chart-highlight:  var(--sop-color-brand);     /* from B: the one purple-outlined "currently focused" KPI tile — marks the single selected metric on a chart, sparingly */
 
   /* ---------------------------------------------------------------------
-     7. BORDER / RADIUS / SHADOW
+     7. CONFIDENCE / FORECAST-CONE SCALE
+     Directly observed in A's "TRANSFER CONFIDENCE" legend: line thickness
+     encodes a 4-step confidence tier (0.70–1.00 High / 0.40–0.69 Medium /
+     0.20–0.39 Low / 0.00–0.19 Very Low), and the legend states the lowest
+     tier is additionally dashed ("Dashed = experimental / low
+     confidence"). Reused below, by name, for the P10/P50/P90 forecast
+     cone: P50 (the median, most-likely line) takes the high-confidence
+     treatment; the P10/P90 tail bounds take the low-confidence dashed
+     treatment. No new hue is introduced for uncertainty — per the
+     restrained-hue policy, confidence is carried entirely by weight and
+     dash, in neutral ink.
      --------------------------------------------------------------------- */
-  --sop-border-width:           1px;    /* from screenshot B/C/D/F: consistent thin hairline card borders throughout the deck */
-  --sop-radius-sm:               6px;   /* from screenshot A/F: small icon chips (edition badges, pipeline-step icons) */
-  --sop-radius-md:               10px;  /* from screenshot B/C/D: KPI tiles and content cards */
-  --sop-radius-lg:                16px; /* from screenshot E: the drill-down modal's outer corner */
-  --sop-radius-pill:            999px;  /* from screenshot C/D/E: verdict badges, "HITL"/"HIGH" status pills */
+  --sop-confidence-weight-high:       3px;   /* from A: 0.70–1.00 tier, thickest line in the legend */
+  --sop-confidence-weight-medium:     2px;   /* from A: 0.40–0.69 tier */
+  --sop-confidence-weight-low:        1.5px; /* from A: 0.20–0.39 tier */
+  --sop-confidence-weight-verylow:    1px;   /* from A: 0.00–0.19 tier, thinnest */
+  --sop-confidence-dasharray-verylow: 3 3;   /* from A: "Dashed = experimental / low confidence" — SVG stroke-dasharray */
 
-  /* Screenshots use colored GLOW (a tinted, blurred box-shadow in the
-     accent hue) around focused cards/nodes — e.g. A's ring glow on the
-     Cloud Kitchen node, B's purple-bordered Revenue tile. That reads as
-     "sci-fi product demo," not "boardroom decision cockpit": it doesn't
-     export to PDF/print predictably and adds a decorative color channel
-     on top of the semantic one. Deliberately NOT reproduced — replaced
-     with a neutral, minimal elevation shadow and a plain focus ring. */
-  --sop-shadow-sm:               0 1px 2px rgba(20, 22, 28, 0.06);  /* derived: modal/dropdown elevation only, not used on every card */
-  --sop-shadow-focus-ring:       0 0 0 3px var(--sop-color-brand-subtle); /* derived: accessible focus indicator, replaces the screenshots' decorative glow */
+  --sop-cone-p50-weight:      var(--sop-confidence-weight-high); /* derived: forecast-cone median = high-confidence line */
+  --sop-cone-p50-style:       solid;
+  --sop-cone-band-weight:     var(--sop-confidence-weight-low);  /* derived: P10/P90 tail bounds = low-confidence line */
+  --sop-cone-band-style:      dashed;
+  --sop-cone-band-dasharray:  var(--sop-confidence-dasharray-verylow);
+  --sop-cone-band-fill:       rgba(245, 246, 248, 0.06); /* derived: faint neutral-ink tint between P10 and P90 — no dedicated "uncertainty" hue, per the restrained-hue policy */
 
   /* ---------------------------------------------------------------------
-     8. TYPOGRAPHY
+     8. BORDER / RADIUS / SHADOW (no glow — see header)
+     --------------------------------------------------------------------- */
+  --sop-border-width:            1px;   /* from B/C/D: consistent thin hairline card borders throughout */
+  --sop-radius-sm:                6px;  /* from A: small icon chips (edition badges, agent-card icons) */
+  --sop-radius-md:                10px; /* from B/C: KPI tiles and content cards */
+  --sop-radius-lg:                16px; /* from D: the drill-down modal's outer corner */
+  --sop-radius-pill:             999px; /* from C/D: verdict badges, "HITL"/"HIGH" status pills */
+
+  --sop-shadow-sm:               0 1px 2px rgba(0, 0, 0, 0.4); /* derived: neutral elevation only (modal separation from a dimmed page); glow deliberately omitted, see header */
+  --sop-shadow-focus-ring:       0 0 0 3px var(--sop-color-brand-subtle); /* derived: crisp 0-blur ring, not a bloom — accessible focus indicator */
+
+  /* ---------------------------------------------------------------------
+     9. TYPOGRAPHY
      System font stack only — the screenshots render in a geometric
      grotesque consistent with SF/Segoe system rendering; no distinctive
-     custom-font characteristics (no display serif, no rounded terminals)
-     were visible, so no external font is assumed or required.
+     custom-font characteristics were visible, so no external font is
+     assumed or required. No CDN, no JS anywhere in this file.
      --------------------------------------------------------------------- */
-  --sop-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* derived: system stack matching the deck's rendering, per task requirement (no external fonts) */
+  --sop-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* derived: system stack matching the deck's rendering, per task requirement */
 
-  /* Type scale — sizes read off the deck's clear hierarchy: big bold
-     hero numbers > bold slide headline > card title > body > table cell
-     > tracked uppercase micro-label. */
-  --sop-text-display:  34px; /* from screenshot B/E: KPI hero numbers (₹4.24L, ₹4.24L/day) */
-  --sop-text-h1:        28px; /* from screenshot A/B/C/D/E/F: the bold slide headline ("One Canvas. Three Lenses...") is consistently ~28-32px */
-  --sop-text-h2:        16px; /* from screenshot F: card/section titles ("CMO Pipeline Architecture") */
-  --sop-text-body:      14px; /* from screenshot B/E: right-rail narrative paragraphs and card body copy */
+  /* Type scale — sizes read off the deck's clear hierarchy: big bold hero
+     number > bold slide headline > card title > body > table cell >
+     tracked uppercase micro-label. */
+  --sop-text-display:  34px; /* from B/D: KPI hero numbers (₹4.24L, ₹4.24L/day) */
+  --sop-text-h1:        28px; /* from A/B/C/D: bold slide headline, consistently ~28-32px */
+  --sop-text-h2:        16px; /* from B: card/section titles */
+  --sop-text-body:      14px; /* from B/D: right-rail narrative paragraphs and card body copy */
   --sop-text-small:     13px; /* derived: secondary/table-cell text, one step below body */
-  --sop-text-label:     11px; /* from screenshot A/C/F: tracked uppercase micro-labels ("TRANSFER CONFIDENCE", "BUSINESS GRAPH", "DATA SOURCES") */
+  --sop-text-label:     11px; /* from A/C: tracked uppercase micro-labels ("TRANSFER CONFIDENCE", "VERDICT") */
 
   --sop-weight-regular:  400;
   --sop-weight-medium:   500;
-  --sop-weight-semibold: 600; /* from screenshot A/C/F: micro-label and card-title weight */
-  --sop-weight-bold:     700; /* from screenshot B/E: KPI hero numbers and headlines */
+  --sop-weight-semibold: 600; /* from A/C: micro-label and card-title weight */
+  --sop-weight-bold:     700; /* from B/D: KPI hero numbers and headlines */
 
-  --sop-label-tracking:  0.06em; /* from screenshot A/C/F: visible letter-spacing on uppercase micro-labels */
+  --sop-label-tracking:  0.06em; /* from A/C: visible letter-spacing on uppercase micro-labels */
 
-  /* Tabular numerals — from screenshot F: pipeline-latency figures
-     (320 ms / 410 ms / 560 ms / 680 ms) sit right-aligned in an equal-width
-     column, and screenshot B's KPI numbers align the same way; both are
-     direct evidence for tabular (fixed-width) digit rendering. */
+  /* Tabular numerals — from B/D: KPI numbers and the pipeline's numbered
+     step figures sit right-aligned at equal width; direct evidence for
+     tabular (fixed-width) digit rendering everywhere. */
   --sop-font-feature-tabular: "tnum" 1, "lnum" 1;
 
-  /* One scale for money, one for units — both use the same base sizes so
-     a money tile and a unit tile sit at equal visual weight (as B's
-     Revenue/Orders/AOV row shows), differing only in the small muted
-     suffix used for scale words ("L", "K", "/day") — from screenshot
-     B/E: "₹4.24L/day", "20.6K/day", "5.07x" all pair a bold number with a
-     smaller, muted trailing unit. */
+  /* One scale for money, one for units — both share the same base sizes
+     so a money tile and a unit tile sit at equal visual weight (B's
+     Revenue/Orders/AOV row), differing only in a smaller muted suffix for
+     scale words ("L", "K", "/day") — from B/D: "₹4.24L/day", "20.6K/day",
+     "5.07x" all pair a bold number with a smaller, muted trailing unit. */
   --sop-num-lg:            34px; /* hero KPI figure, money or unit */
-  --sop-num-md:            20px; /* secondary figure, e.g. a pipeline stat */
+  --sop-num-md:            20px; /* secondary figure */
   --sop-num-sm:            14px; /* table-cell figure */
   --sop-num-suffix-size:   0.55em; /* derived: relative size of a trailing "/day", "L", "K", "x" unit suffix */
 
   /* ---------------------------------------------------------------------
-     9. SPACING RHYTHM
-     Card internal padding reads ~20-24px throughout (A/B/C/D/E/F); gaps
+     10. SPACING RHYTHM
+     Card internal padding reads ~20-24px throughout (A/B/C/D); gaps
      between sibling cards/tiles read ~12-16px. An 8px-multiple scale
      covers both cleanly.
      --------------------------------------------------------------------- */
   --sop-space-1:  4px;
   --sop-space-2:  8px;
-  --sop-space-3: 12px; /* from screenshots: gap between sibling KPI tiles / signal cards */
+  --sop-space-3: 12px; /* from A/B/C/D: gap between sibling KPI tiles / agent cards */
   --sop-space-4: 16px;
-  --sop-space-5: 20px; /* from screenshots: card internal padding (lower end) */
-  --sop-space-6: 24px; /* from screenshots: card internal padding (upper end) / page gutter */
+  --sop-space-5: 20px; /* from A/B/C/D: card internal padding (lower end) */
+  --sop-space-6: 24px; /* from A/B/C/D: card internal padding (upper end) / page gutter */
   --sop-space-8: 32px;
   --sop-space-10: 40px;
 
   /* ---------------------------------------------------------------------
-     10. TABLE / GRID
+     11. TABLE / GRID
      --------------------------------------------------------------------- */
-  --sop-table-row-height:  40px;                       /* derived, comfortable with --sop-text-small + --sop-space-2 padding */
+  --sop-table-row-height:  40px;                            /* derived, comfortable with --sop-text-small + --sop-space-2 padding */
   --sop-table-header-bg:   var(--sop-color-surface-sunken); /* derived */
-  --sop-table-stripe-bg:   rgba(20, 22, 28, 0.025);    /* derived: faint zebra striping, well under WCAG-irrelevant decorative threshold */
+  --sop-table-stripe-bg:   rgba(255, 255, 255, 0.025);      /* derived: faint zebra striping, well under WCAG-irrelevant decorative threshold */
 
   /* ---------------------------------------------------------------------
-     11. KPI-TILE ANATOMY
-     From screenshot B/E: label (muted, small, with an info glyph) + big
-     bold number + a colored delta row carrying an up/down arrow + an
-     inline "Why?" drill-in link. Tokens below size the container only;
-     the anatomy itself is expressed by the .tile utility further down.
+     12. KPI-TILE ANATOMY
+     From B/D: micro-label with an info affordance ("Revenue ⓘ") + big
+     bold hero number + a colored delta row (direction glyph + comparison
+     basis, e.g. "▲12.4% vs Apr 1 – Apr 27") + an inline "Why?" drill-in
+     link. Tokens below size the container; the .tile utility (section 16)
+     expresses the anatomy itself.
      --------------------------------------------------------------------- */
-  --sop-tile-padding: var(--sop-space-5); /* from screenshot B: KPI tile internal padding */
-  --sop-tile-radius:  var(--sop-radius-md);
-  --sop-tile-gap:     var(--sop-space-2); /* from screenshot B: vertical gap between label / number / delta rows */
+  --sop-tile-padding:   var(--sop-space-5); /* from B: KPI tile internal padding */
+  --sop-tile-radius:    var(--sop-radius-md);
+  --sop-tile-gap:       var(--sop-space-2); /* from B: vertical gap between label / number / delta rows */
+  --sop-tile-info-size: 14px;               /* from B/D: the small "ⓘ" info-affordance glyph beside each KPI-tile label */
+
+  /* ---------------------------------------------------------------------
+     13. STATUS DOTS — KPI health
+     From B's left-rail "KPI HEALTH" list: a colored dot always paired
+     with a label ("● Revenue", "● Supply Risk"), never a bare dot. Colors
+     reuse the good/warn/bad tokens from section 5 — no new hue.
+     --------------------------------------------------------------------- */
+  --sop-dot-size: 8px; /* from B: KPI Health list dot diameter */
+
+  /* ---------------------------------------------------------------------
+     14. NARRATIVE RAIL
+     From B/D: the right-hand story panel sits directly on canvas with no
+     card border — visually distinct from the hairline-bordered data grid
+     by measure and typography alone, not a box. The one bordered element
+     inside it is a callout: D's "Core tenet" box and B's boxed aside both
+     carry a colored LEFT-border accent, in the info blue (never brand
+     purple — purple stays reserved for nav/identity per the hue policy).
+     --------------------------------------------------------------------- */
+  --sop-color-rail-accent:          var(--sop-color-info); /* from D/B: callout left-border accent */
+  --sop-rail-max-width:             320px; /* derived: comfortable reading measure for the right-hand panel in B/D */
+  --sop-rail-callout-border-width:  3px;   /* from D: the "Core tenet" box's left-border accent reads heavier than the standard 1px hairline */
 }
 
 /* =============================================================================
-   DARK THEME — justified by the screenshots themselves
-   All 6 reference screenshots are dark-canvas. Unlike the rest of this file
-   (which had to invert dark evidence into a light-primary theme), these
-   values are close to direct reads off the deck, not derivations.
+   LIGHT THEME — explicit opt-in override, NOT the default
+   Dark is primary per the design brief. Nothing in this file switches to
+   light automatically (deliberately no `@media (prefers-color-scheme:
+   light)` query) — that would make light "the default" for any user whose
+   OS happens to be set to light, exactly the inversion we're avoiding.
+   Apply light explicitly: <html data-theme="light">. None of the 4
+   reference screenshots show a light variant, so every value below is
+   DERIVED as a straight light-inversion of the dark tokens above, kept
+   only for parity with callers that still need a light surface (e.g. a
+   printed handout).
    ========================================================================= */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --sop-color-canvas:          #0a0b0f; /* from screenshot A/B/C/D/E/F: the page background behind every card */
-    --sop-color-surface:         #14161e; /* from screenshot B/C/D: KPI tile / card fill, one step lighter than canvas */
-    --sop-color-surface-sunken:  #0f1116; /* from screenshot E: inset pipeline-step rows sit slightly darker than the modal surface */
-    --sop-color-border:          rgba(255, 255, 255, 0.08); /* from screenshot B/C/D/F: thin, low-opacity hairline card borders */
-    --sop-color-border-strong:   rgba(255, 255, 255, 0.16); /* derived: heavier divider variant */
+[data-theme="light"] {
+  --sop-color-canvas:          #f7f7f8; /* derived: light inversion of --sop-color-canvas */
+  --sop-color-surface:         #ffffff; /* derived: light inversion of --sop-color-surface */
+  --sop-color-surface-sunken:  #eef0f3; /* derived */
+  --sop-color-surface-raised:  #ffffff; /* derived: modal sits flush with surface in the light variant */
+  --sop-color-scrim:           rgba(20, 22, 28, 0.4); /* derived */
+  --sop-color-border:          #e1e3e8; /* derived */
+  --sop-color-border-strong:   #c7cad2; /* derived */
+  --sop-color-step-connector:  #d5d8de; /* derived */
 
-    --sop-color-text-primary:    #f5f6f8; /* from screenshot B/E: headline and KPI-number white */
-    --sop-color-text-secondary:  #9aa0ab; /* from screenshot B: chart legend / body copy grey */
-    --sop-color-text-muted:      #6b7280; /* from screenshot A/C/F: dim tracked-uppercase micro-labels */
-    --sop-color-text-inverse:    #14161c;
+  --sop-color-text-primary:    #14161c; /* derived */
+  --sop-color-text-secondary:  #4a4f5b; /* derived */
+  --sop-color-text-muted:      #666d79; /* derived: was #868c98 = 3.38:1 on white, under AA for 11px labels. Now 5.21:1. */
+  --sop-color-text-inverse:    #f5f6f8; /* derived */
 
-    --sop-color-brand:           #a78bfa; /* from screenshot A/B/D: purple accent, kept close to source since dark IS the source medium */
-    --sop-color-brand-subtle:    rgba(167, 139, 250, 0.16);
+  --sop-color-brand:           #6d28d9; /* derived: darkened for 4.5:1+ contrast on white */
+  --sop-color-brand-subtle:    #efe9fc; /* derived */
 
-    --sop-color-ink:             #f5f6f8; /* derived: ink flips to light-on-dark, still one ink for all three scenario types */
-    --sop-color-ink-soft:        #6b7280;
+  --sop-color-ink:              #14161c; /* derived */
+  --sop-color-ink-soft:         #767c8a; /* derived: was #9096a3 = 2.97:1 on white, under the 3:1 mark floor. Now 4.18:1. */
+  --sop-color-ink-faint:        #858b98; /* derived: was #c7cad2 = 1.64:1 on white — invisible as a mark. Now 3.25:1 on white / 3.04:1 on canvas. */
 
-    --sop-color-good:            #34d399; /* from screenshot B: up-delta green, as rendered on dark */
-    --sop-color-good-bg:         rgba(52, 211, 153, 0.12);
-    --sop-color-bad:             #f87171; /* from screenshot B/D: down-delta / "Causes" red, as rendered on dark */
-    --sop-color-bad-bg:          rgba(248, 113, 113, 0.12);
-    --sop-color-warn:            #fbbf24; /* from screenshot C/E: amber HITL / approval-required pill */
-    --sop-color-warn-bg:         rgba(251, 191, 36, 0.12);
-    --sop-color-info:            #60a5fa; /* from screenshot B: blue link / "Understand" tab */
-    --sop-color-info-bg:         rgba(96, 165, 250, 0.12);
+  --sop-color-good:             #1a7a42; /* derived: darkened for AA on white */
+  --sop-color-good-bg:          #e7f5eb;
+  --sop-color-bad:              #b3261e; /* derived: darkened for AA on white */
+  --sop-color-bad-bg:           #fbeae8;
+  --sop-color-warn:             #966107; /* derived: darkened for AA on white */
+  --sop-color-warn-bg:          #fdf2dc;
+  --sop-color-info:             #1d4ed8; /* derived */
+  --sop-color-info-bg:          #e9eefc;
 
-    --sop-color-chart-grid:      rgba(255, 255, 255, 0.06);
-    --sop-color-chart-axis:      rgba(255, 255, 255, 0.16);
-    --sop-color-chart-highlight: var(--sop-color-brand);
+  --sop-color-chart-grid:       #e8e9ec; /* derived */
+  --sop-color-chart-axis:       #b8bcc6; /* derived */
 
-    --sop-shadow-sm:             0 1px 2px rgba(0, 0, 0, 0.4); /* derived: neutral elevation, glow still deliberately omitted (see light-theme comment) */
-    --sop-shadow-focus-ring:     0 0 0 3px var(--sop-color-brand-subtle);
-  }
+  --sop-cone-band-fill:         rgba(20, 22, 28, 0.05); /* derived: light-theme equivalent tint */
+
+  --sop-shadow-sm:               0 1px 2px rgba(20, 22, 28, 0.06); /* derived */
+  --sop-shadow-focus-ring:       0 0 0 3px var(--sop-color-brand-subtle);
 }
 
 /* =============================================================================
    UTILITY CLASSES — the minimum set every mockup needs
    ========================================================================= */
 
-/* Base numeric reset: every figure in the cockpit uses tabular numerals so
-   columns of numbers align, per the "click any number" precision the
-   screenshots (B/E/F) consistently demonstrate. */
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -267,9 +330,8 @@ body {
   line-height: 1.5;
 }
 
-/* --- panel: generic card/section container (chart cards, list cards, the
-   right-hand narrative rail — every module in the screenshots is one of
-   these) --------------------------------------------------------------- */
+/* --- panel: generic card/section container (chart cards, list cards —
+   every module in the screenshots is one of these) ---------------------- */
 .panel {
   background: var(--sop-color-surface);
   border: var(--sop-border-width) solid var(--sop-color-border);
@@ -278,9 +340,23 @@ body {
 }
 .panel + .panel { margin-top: var(--sop-space-4); }
 
-/* --- section-header: tracked-uppercase kicker + bold title, exactly the
-   "ACT 4 · THE COMPOUNDING MOAT" / "TREND SNAPSHOT" pattern repeated in
-   every screenshot ------------------------------------------------------ */
+/* --- modal: the provenance drill-down surface (from D) ------------------ */
+.modal-scrim {
+  background: var(--sop-color-scrim); /* from D: dimmed page behind the "How this number was produced" modal */
+}
+.modal {
+  background: var(--sop-color-surface-raised);
+  border: var(--sop-border-width) solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg);
+  box-shadow: var(--sop-shadow-sm);
+  padding: var(--sop-space-6);
+}
+.step-connector {
+  border-left: var(--sop-border-width) solid var(--sop-color-step-connector); /* from D: connector between numbered pipeline steps */
+}
+
+/* --- section-header: tracked-uppercase kicker + bold title, e.g.
+   "ACT 4 · THE COMPOUNDING MOAT" / "TREND SNAPSHOT" ---------------------- */
 .section-header { margin-bottom: var(--sop-space-4); }
 .section-header .kicker {
   display: block;
@@ -306,8 +382,9 @@ body {
   color: var(--sop-color-text-muted);
 }
 
-/* --- tile: KPI tile anatomy (screenshot B/E) — label row, hero number,
-   delta row with a directional glyph. -------------------------------- */
+/* --- tile: KPI tile anatomy (screenshot B/D) — label row with an info
+   affordance, hero number, delta row with a directional glyph + a
+   comparison basis, and a "Why?" drill-in link. ------------------------- */
 .tile {
   background: var(--sop-color-surface);
   border: var(--sop-border-width) solid var(--sop-color-border);
@@ -318,13 +395,18 @@ body {
   gap: var(--sop-tile-gap);
 }
 .tile.is-focused {
-  border-color: var(--sop-color-brand); /* from screenshot B: the one purple-outlined "focused" Revenue tile */
-  box-shadow: var(--sop-shadow-focus-ring);
+  border-color: var(--sop-color-brand); /* from B: the one purple-outlined "focused" Revenue tile */
+  box-shadow: var(--sop-shadow-focus-ring); /* crisp 0-blur ring, not the source's blurred glow */
 }
-/* Note: .tile__label below duplicates .label-muted's declarations rather than
-   composing it, since plain CSS has no composition mechanism (no build step
-   per the task's "no JS" constraint) — apply .label-muted directly if you
-   want the shared muted-label look on a non-tile element. */
+/* Note: .tile__label below duplicates .label-muted's declarations rather
+   than composing it, since plain CSS has no composition mechanism (no
+   build step, per the "no JS" constraint) — apply .label-muted directly
+   for the shared muted-label look on a non-tile element. */
+.tile__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sop-space-1);
+}
 .tile__label {
   font-size: var(--sop-text-label);
   font-weight: var(--sop-weight-semibold);
@@ -332,6 +414,18 @@ body {
   text-transform: uppercase;
   color: var(--sop-color-text-muted);
 }
+.tile__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sop-tile-info-size);
+  height: var(--sop-tile-info-size);
+  border-radius: 50%;
+  border: 1px solid var(--sop-color-text-muted);
+  color: var(--sop-color-text-muted);
+  font-size: 10px;
+  line-height: 1;
+} /* from B/D: the small "ⓘ" info affordance beside every KPI-tile label */
 .tile__value {
   font-size: var(--sop-num-lg);
   font-weight: var(--sop-weight-bold);
@@ -349,6 +443,19 @@ body {
   font-weight: var(--sop-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
+.tile__delta-basis {
+  color: var(--sop-color-text-muted);
+  font-weight: var(--sop-weight-regular);
+} /* from B: "vs Apr 1 – Apr 27" comparison-basis text trailing the delta */
+.tile__why {
+  display: inline-block;
+  margin-top: var(--sop-space-1);
+  font-size: var(--sop-text-small);
+  font-weight: var(--sop-weight-semibold);
+  color: var(--sop-color-info);
+  text-decoration: underline;
+  cursor: pointer;
+} /* from B/D: "Why?" / provenance drill-in link under the delta row */
 
 /* --- numeric alignment: apply to any <td>/<span> holding a figure ------ */
 .num {
@@ -364,8 +471,8 @@ body {
 /* --- variance-positive / variance-negative -----------------------------
    Color is never the only carrier: each class prepends a directional
    glyph via ::before (▲ / ▼) so the sign survives grayscale print and
-   red-green color-vision deficiency; the two hues are additionally tuned
-   to >=4.5:1 contrast on --sop-color-surface (see token comments above).
+   red-green color-vision deficiency; both hues are additionally tuned for
+   dark-surface contrast (see token comments in section 5).
    ------------------------------------------------------------------- */
 .variance-positive,
 .variance-negative {
@@ -376,9 +483,45 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .variance-positive { color: var(--sop-color-good); }
-.variance-positive::before { content: "\25B2"; font-size: 0.75em; } /* ▲ from screenshot B: up-arrow glyph beside green deltas */
+.variance-positive::before { content: "\25B2"; font-size: 0.75em; } /* ▲ from B: up-arrow glyph beside green deltas */
 .variance-negative { color: var(--sop-color-bad); }
-.variance-negative::before { content: "\25BC"; font-size: 0.75em; } /* ▼ from screenshot B: down-arrow glyph beside red deltas */
+.variance-negative::before { content: "\25BC"; font-size: 0.75em; } /* ▼ from B: down-arrow glyph beside red deltas */
+
+/* --- status: KPI-health dot, ALWAYS paired with text (section 13) ------ */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sop-space-2);
+} /* from B: "KPI HEALTH" list — dot + label, never a bare dot */
+.status-dot {
+  display: inline-block;
+  width: var(--sop-dot-size);
+  height: var(--sop-dot-size);
+  border-radius: 50%;
+  flex: none;
+}
+.status-dot--good { background: var(--sop-color-good); }
+.status-dot--warn { background: var(--sop-color-warn); }
+.status-dot--bad  { background: var(--sop-color-bad); }
+
+/* --- rail: narrative/story panel (section 14) --------------------------- */
+.rail {
+  max-width: var(--sop-rail-max-width);
+  color: var(--sop-color-text-secondary);
+  font-size: var(--sop-text-body);
+  line-height: 1.6;
+} /* from B/D: sits directly on canvas, no card border — distinct from the data grid by measure + typography, not a box */
+.rail a {
+  color: var(--sop-color-info);
+  text-decoration: underline;
+} /* from B/D: inline links inside rail body copy ("Market Agent", "raw data", "pipeline") */
+.rail__callout {
+  background: var(--sop-color-surface);
+  border-left: var(--sop-rail-callout-border-width) solid var(--sop-color-rail-accent);
+  border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-4);
+  margin-top: var(--sop-space-4);
+} /* from D's "Core tenet" box and B's boxed aside — the one bordered element inside an otherwise borderless rail */
 
 /* --- table: reconciliation / plan grids --------------------------------- */
 .table {
@@ -410,7 +553,8 @@ body {
 }
 
 /* =============================================================================
-   IBCS MARK UTILITIES — actual (solid) / plan (outline) / forecast (hatched)
+   IBCS MARK UTILITIES — actual (solid) / plan (outline) / forecast
+   (hatched) / previous year (light solid)
    Required by IBCS notation discipline (task brief), not present in the
    source screenshots (none contain scenario-typed bars). Applied to any
    bar/legend-swatch element, e.g. <span class="mark mark-actual"></span>
@@ -424,7 +568,7 @@ body {
   vertical-align: -0.15em;
 }
 .mark-actual {
-  /* actual = solid dark fill */
+  /* actual = solid ink fill */
   background: var(--sop-color-chart-actual);
 }
 .mark-plan {
@@ -442,4 +586,43 @@ body {
     transparent 5px
   );
   border: 1px solid var(--sop-color-chart-forecast);
+}
+.mark-prior-year {
+  /* previous year = light solid fill — faintest ink, no hatch, no outline-only treatment, so it reads as "present but receded" next to actual */
+  background: var(--sop-color-chart-prior-year);
+}
+
+/* =============================================================================
+   CONFIDENCE LINE UTILITIES — from A's TRANSFER CONFIDENCE legend
+   Apply to a legend swatch (<span class="conf-line conf-line--high">) or,
+   for chart strokes, read the --sop-confidence-weight-* / --sop-cone-*
+   custom properties directly onto an SVG <path>/<line> stroke-width and
+   stroke-dasharray (plain CSS var() works on SVG presentation attributes
+   too).
+   ========================================================================= */
+.conf-line {
+  display: inline-block;
+  width: 2em;
+  border-top-style: solid;
+  border-top-color: var(--sop-color-ink-soft);
+  vertical-align: middle;
+}
+.conf-line--high    { border-top-width: var(--sop-confidence-weight-high); }
+.conf-line--medium  { border-top-width: var(--sop-confidence-weight-medium); }
+.conf-line--low     { border-top-width: var(--sop-confidence-weight-low); }
+.conf-line--verylow {
+  border-top-width: var(--sop-confidence-weight-verylow);
+  border-top-style: dashed;
+} /* from A: thickness = confidence tier, dashed = experimental/very-low */
+
+/* --- forecast-cone marks: P50 median + P10/P90 band, reusing the
+   confidence scale above (see section 7 token comments) ------------------ */
+.cone-p50 {
+  stroke-width: var(--sop-cone-p50-weight);
+  stroke-dasharray: none;
+}
+.cone-band {
+  stroke-width: var(--sop-cone-band-weight);
+  stroke-dasharray: var(--sop-cone-band-dasharray);
+  fill: var(--sop-cone-band-fill);
 }
