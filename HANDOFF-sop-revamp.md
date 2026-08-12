@@ -1,16 +1,16 @@
-# HANDOFF — S&OP Cockpit Revamp (mockups 1+2 shown to Lavi, verdict pending)
+# HANDOFF — S&OP Cockpit Revamp (mockup 3 approved, mockup 4 next)
 
 **Date:** 2026-08-13 (supersedes the earlier version of this file from the same day).
 **Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH).
-**Why:** session hit ~111k context. Mockup 2's collision bug (left from last session) is found and fixed.
-Both mockups were opened in Lavi's browser for review — **his verdict was not yet given when this session ended.**
+**Why:** session hit ~200k context. Mockups 1+2 approved (fill dropped to 85% ink). Mockup 3 (levers +
+5-step provenance modal) built, verified, and **approved by Lavi** — "both are fine, keep going with mockup 4."
 
 ---
 
 ## Read this first
 
-**`SCOPE.md`** — the locked build scope, current. Do not re-derive it. §7 governs "hand-checkable arithmetic";
-§8b gives the chart grammar; §9 gives the mockup build order (each mockup needs approval before the next starts).
+**`SCOPE.md`** — the locked build scope, current. Do not re-derive it. §4 = lever list, §6b = the 5-step
+provenance-modal pattern + chart grammar, §9 = mockup build order (each mockup needs approval before the next).
 
 ---
 
@@ -19,12 +19,12 @@ Both mockups were opened in Lavi's browser for review — **his verdict was not 
 | Phase | State |
 |---|---|
 | Research, transcript, screenshots, scope lock | done (unchanged) |
-| `mockups/tokens.css` contrast audit | done (unchanged, prior session) |
-| `mockups/build_data.py` + `mockups/data.js` | done — real engine output, zero hand-typed numbers |
-| **Mockup 1 — layout shell** | done, verified, **shown to Lavi this session** |
-| **Mockup 2 — scenario comparison** | done, verified, fill-rate collision fixed, **shown to Lavi this session** |
-| Mockup 3 — levers/drill-down | not started — **blocked on Lavi's approval of 1+2** |
-| Mockup 4 — KPI tiles | not started |
+| `mockups/tokens.css` contrast audit | done (unchanged) |
+| `mockups/build_data.py` + `mockups/data.js` | done — now includes per-family **provenance** export (new this session) |
+| **Mockup 1 — layout shell** | done, **approved**. Base-bar fill dropped to 85% ink this session (both mockups 1+2) |
+| **Mockup 2 — scenario comparison** | done, **approved** |
+| **Mockup 3 — levers + drill-down** | done, verified, **approved this session** |
+| Mockup 4 — KPI tiles | **not started — start here** |
 | Mockup 5 — margin waterfall | not started |
 | Implementation | not started. Do not start it. |
 
@@ -32,62 +32,86 @@ Both mockups were opened in Lavi's browser for review — **his verdict was not 
 
 ## Immediate next step
 
-**Ask Lavi for his verdict on mockups 1 and 2** (both were opened via `open mockups/0{1,2}-*.html` in his
-default browser at the end of the session — check whether he actually looked). Specifically need:
-1. Approval to move on to mockup 3, per SCOPE §9's one-mockup-at-a-time gate.
-2. The open judgement call from mockup 1: Base's solid-white bars read visually heavy against near-black —
-   drop actual fills to ~85% ink, or leave as-is?
-3. Any defects he spots that this session's headless-Chrome inspection missed — headless review is a proxy,
-   not a substitute for his eyes on the real interactive render.
+**Build mockup 4 — KPI tiles.** Load the `dataviz` skill first (project convention, non-optional). Reuse the
+`.tile` CSS class already in `mockups/tokens.css` (§ "tile: KPI tile anatomy" — label row with info affordance,
+hero number, delta row, "Why?" drill-in link) rather than inventing new tile markup; it exists specifically for
+this mockup. Follow the same build/verify loop as mockup 3: headless-Chrome screenshot for layout, `open
+mockups/04-*.html` for Lavi's real render, ask for his verdict before mockup 5.
 
-If he approves, start mockup 3 (levers + drill-down, 5-step provenance modal per SCOPE §6b) — load the
-`dataviz` skill again first, per project convention.
+DESIGN.md §2 (KPI tile row) lists candidate tiles from the original frozen spec: Fill Rate ×3
+(Base/Upside/Constrained), Bottleneck Resource Utilization, Upside Value Unlocked, Margin at Risk
+(Constrained) — treat as a starting list, not gospel, since DESIGN.md predates SCOPE.md's visual-direction lock
+(§6b) and uses a different (superseded) color-token system. Every tile's "Why?" link should open the same
+provenance modal mockup 3 already built (reuse `openModal(scenario, famId, month)` where the KPI traces to a
+specific family/month, or a new scenario-level rollup step where it doesn't).
 
 ---
 
 ## What changed this session
 
-### Fixed: mockup 2's fill-rate axis-note collision (new defect, found on re-render)
-Prior session's three flagged geometry fixes (structural-comparison gutter, variance "reference" label,
-family-drilldown gutter) were **re-rendered and confirmed clean** — no action needed there.
+### Mockups 1+2: Base-bar fill dropped to 85% ink (approved judgment call)
+`--sop-color-chart-actual` fills were reading visually heavy (near-white solid against near-black canvas).
+Fixed via `fill-opacity="0.85"` on the SVG paint calls (both `01-layout-shell.html`'s `paint()` and
+`02-scenario-comparison.html`'s `paintScenario()`) plus a matching `opacity:0.85` on both legend swatches —
+opacity layer, not a hardcoded color, so it stays correct under the light-theme token flip.
 
-But a fourth, previously-unflagged defect turned up: in the Fill rate row of the structural-comparison table,
-the "axis starts at 98.00%, not zero" note text overlapped the Upside bar and its `100.00%` label.
+### New: per-family provenance export (`mockups/build_data.py`)
+Added `_provenance()` — for every (scenario, family, month) it now exports the real Demand → Capacity →
+Rationing → Supply → Financials trail, sourced directly from the engine:
+- **Demand**: `base_monthly_demand[month] × (1 + upside_uplift_pct)` when the scenario applies uplift.
+- **Capacity**: per touched resource, `ResourceLoad` (load/available/utilization/is_bottleneck).
+- **Rationing**: calls `constrain._allowed_units_this_month` directly (the actual authoritative rationing
+  decision — greedy by descending unit margin) rather than re-deriving it; only the presentational trail
+  (rank, cumulative/remaining hours) is recomputed from that authoritative result, so the rationing rule lives
+  in exactly one place.
+- **Supply / Financials**: the real `SupplyLine`/`FinanceLine` objects via `jsonable()`.
 
-**Root cause** (`mockups/02-scenario-comparison.html`, `drawLevels`): every metric's SVG used a fixed
-`viewBox` height (`BH = 70`), sized to fit exactly 3 bar rows. Only the `fill` metric adds an extra bottom-axis
-note line inside that same fixed height — there was no room reserved for it, so it collided with row 3.
+Verified arithmetically (not just "ran without error"): confirmed `remaining_before − granted = remaining_after`
+holds, and found a real rationed case (FAM-DRY, rank 3 of 3, capped at whatever capacity was left) to prove the
+"protect highest-margin business first" rule actually renders, not just the trivial unconstrained case.
 
-**Fix:** added `NOTE_BH = 92` and a `hasNote` flag; metrics with a note now render in the taller box, note text
-repositioned to sit clearly below all three rows. Other 5 metrics' geometry is untouched (verified: their SVGs
-never reach the `hasNote` branch). Re-rendered and confirmed: 24-unit clearance between the last bar and the
-note, no overlap, no regression to row alignment (the row's variance-panel cell just gets a little extra
-whitespace, which is already normal in this design — e.g. Closing inventory's small variance mark).
+`data.js` regenerated: 712,821 bytes (up from a few hundred KB — the provenance block is the bulk of the
+growth; 6 families × 12 months × 3 scenarios × ≤4 resources).
 
-### Tooling note: `claude-in-chrome` cannot open `file://` mockup URLs
-The browser extension refuses local file URLs ("Can't interact with browser-internal or unparseable URLs").
-Worked around by using headless Chrome directly for automated inspection, and macOS `open` for showing Lavi
-the live interactive version:
-```bash
-# automated screenshot/inspection (agent-side verification)
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --no-sandbox \
-  --window-size=1600,2400 --screenshot=/path/out.png "file://$(pwd)/mockups/FILE.html"
-# then crop regions with: uv run --with pillow python3 -c "from PIL import Image; ..."
+### New: `mockups/03-levers-drilldown.html`
+- **Levers panel** (SCOPE §4): Tier 1 visible by default, Tier 2 behind a native `<details>` "Advanced"
+  disclosure. Every slider renders **disabled** with an honest inline note — no live recompute exists yet (no
+  JS port of the engine), so a draggable-but-inert lever would be a lie. Where a real Base-scenario reference
+  number exists (e.g. installed hours per resource), the caption shows it; everything else states its unit and
+  that Base = 0% by construction. **Confirmed by Lavi — keep disabled, don't fake interactivity.**
+- **Drill-down grid**: family × month table of fill rate %, sorted by margin (same order as mockup 2's family
+  panel). Cells tint red on real unmet demand (not "was rationed this month" — those differ: opening inventory
+  can absorb one month's production shortfall with zero customer impact, which the grid correctly shows, e.g.
+  FAM-DRY was rationed in March but still hit 100% fill because inventory covered it).
+- **5-step provenance modal**: reuses tokens.css's pre-built `.modal`/`.modal-scrim`/`.step-connector` base
+  classes (already designed for exactly this — comment says "connector between the 5 numbered provenance
+  steps"). **Confirmed interpretation**: 5 numbered steps (Demand/Capacity/Rationing/Supply/Financials), KPI as
+  a closing tie-back line under step 5, not a 6th numbered step.
 
-# show Lavi the real, interactive render
-open mockups/FILE.html
-```
-Logged to global `~/.claude/LEARNINGS.md` since this will recur on any local-HTML verification task.
+### Verification method (headless Chrome, no puppeteer available)
+Syntax-checked the inline script with `node --check` (parse-only, catches typos without needing a DOM). For
+runtime verification, copied the mockup to the scratchpad **with `data.js`/`tokens.css` copied alongside it**
+(the first attempt failed with a misleading `undefined.resources` error that was actually a missing-sibling-file
+problem in the test harness, not a real bug — worth remembering if this pattern recurs), injected a
+`window.onerror` handler, and simulated a real `.click()` on a grid cell (not a fake global function call — an
+earlier attempt to call `openModal(...)` directly failed because it's scoped inside the IIFE, not global).
+Caught one real bug this way: `.step__formula` used `white-space: nowrap` + `overflow-x:auto`, which clipped
+long lines and rendered a persistent horizontal-scrollbar bar under each formula box in headless Chrome. Fixed
+by switching to normal wrapping (`white-space: normal; word-break: break-word`) and widening the modal
+(640px → 720px). Re-verified clean after the fix. Also checked light theme + the Advanced disclosure open —
+both render correctly. No raw hex/rgb colors introduced outside `tokens.css` tokens (grepped to confirm), so no
+new categorical palette needed the `dataviz` validator.
 
 ---
 
 ## Engine facts (unchanged, still current — not re-derived here)
 
-See the previous version of this file (in git history, commit `09217a2`) for full engine-facts and the
-architecture-fork section (client-side lever-drag recompute → JS port, Python as reference, golden-fixture
-tests). Nothing changed there this session. Two open questions for Lavi remain **unanswered**:
+See git history (commit `09217a2`) for full engine-facts and the architecture-fork section (client-side
+lever-drag recompute → JS port, Python as reference, golden-fixture tests). Two open questions for Lavi remain
+**unanswered** (not raised again this session — still open):
 1. Planner override / HITL — in scope, and how deep? (`SCOPE.md` §8)
-2. The JS-port fork — confirm the golden-fixture approach.
+2. The JS-port fork — confirm the golden-fixture approach. Relevant now that mockup 3 made the "levers don't
+   recompute yet" gap concrete and visible on screen.
 
 ### Blocker on Stage-4 goal (unchanged)
 `data/families.json` has no revenue/margin targets. Stage 4 needs an explicit target per scenario plus a
@@ -97,29 +121,48 @@ gap-to-plan line in $ and % — new input data, not just a new chart. Raise befo
 
 ## Next jobs, in order
 
-1. **Get Lavi's verdict on mockups 1+2** (see "Immediate next step").
-2. If approved: Mockup 3 — levers + drill-down interaction (5-step provenance modal, SCOPE §6b).
-3. Mockup 4 — KPI tiles.
-4. Mockup 5 — margin waterfall.
+1. **Mockup 4 — KPI tiles** (see "Immediate next step" above). Start here.
+2. Mockup 5 — margin waterfall.
+3. Only after Lavi approves all 5: revisit the two open engine-architecture questions before implementation.
 
 ---
 
 ## Suggested skills
 
-- **`dataviz`** — load again before touching mockup 3+, non-optional for this work per project convention.
-- **`/brief`** — this session ran in brief mode; Lavi prefers it.
-- **`artifact-design`** — layout/visual fundamentals, relevant for the provenance-modal work in mockup 3.
+- **`dataviz`** — load again before touching mockup 4, non-optional for this project.
+- **`/brief`** or **`/terse`** — Lavi runs sessions compressed; pick whichever is active or ask.
+- **`artifact-design`** — KPI tile anatomy/hero-number layout is relevant again for mockup 4.
 - Skip `code-review` / `simplify` until implementation actually lands.
 
 ---
 
 ## Working style (carry forward, unchanged)
 
-- **Judge files and diffs, never prose.** Verify every claim by running it.
-- **Read the sources yourself when they're the design input.**
+- **Judge files and diffs, never prose.** Verify every claim by running it — this session's headless-Chrome
+  verification loop (syntax check → runtime click-simulation → visual screenshot) is the pattern to repeat for
+  mockup 4, not just "it looks like it should work."
+- **Read the sources yourself when they're the design input** — this session read `constrain.py`/`finance.py`/
+  `demand.py`/`capacity.py` in full before writing the provenance export, rather than guessing the formulas.
 - Lavi is terse and decisive, pushes back on badly-scoped work, wants to be grilled. Recommendation + one next
-  action, not a survey.
+  action, not a survey. He approves fast when the work is honest about its own gaps (e.g. disabled levers) —
+  don't oversell mockup capability to make it look more finished than it is.
 - **Do not implement until he confirms.** Still true, still unconfirmed.
+
+---
+
+## Git state — uncommitted
+
+Nothing has been committed this session (project convention: never commit without being asked). Working tree
+currently has:
+```
+ M mockups/01-layout-shell.html
+ M mockups/02-scenario-comparison.html
+ M mockups/build_data.py
+ M mockups/data.js
+?? mockups/03-levers-drilldown.html
+```
+Decide at the start of next session whether to commit (Lavi has approved mockups 1–3, so there's a reasonable
+case for it) — don't commit automatically just because this handoff exists.
 
 ---
 
