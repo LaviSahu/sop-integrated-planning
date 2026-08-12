@@ -1,75 +1,130 @@
-# HANDOFF — S&OP Cockpit Revamp (research → alignment → build)
+# HANDOFF — S&OP Cockpit Revamp (alignment done → build mockups)
 
-**Date:** 2026-08-12. **Repo:** `~/Documents/Aiwork/sop-integrated-planning` (branch `main`, remote `LaviSahu/sop-integrated-planning`, SSH).
-**Why this handoff:** session hit ~128k context mid-task. Research is DONE and saved as files. The heavy unread inputs (transcript + screenshots) are read in the FRESH session. **Nothing durable is lost** — everything is a file in `research/` + this doc, committed locally (not pushed).
-
----
-
-## The transcript — saved & converted (cockpit design-philosophy gold)
-- **`research/wispr-transcript.md`** — clean markdown (1014 lines) of Lavi's "clean discussion," converted from the original **`research/Untitled.rtf`** (421 KB) via `textutil`.
-- **What it actually is:** notes from a **zerOm** meeting (a causal decision engine; attendees incl. Lavi, Saurabh Verma, Prabhat Agarwal, Ravi Shanker; Union Coop UAE retail demo). It is **not** S&OP arithmetic — it's **cockpit/dashboard design philosophy** that maps 1:1 onto this revamp:
-  - **MECE, non-overlapping KPI signals** (so execs don't dispute the read).
-  - **Surface positives alongside pain points** — holistic view, not just red.
-  - **Explainability/trust is the crux** — causal linkage must "land smoothly"; cover edge cases, not just the happy path.
-  - **Tabular view alongside the visual** (simpler consumption / audit).
-  - **Backtesting view** (lift on past data, same formulas) → builds trust.
-  - **Human-in-the-loop override** — let users feed corrections / business knowledge back in.
-- Read it for the **design language**, then cross-apply to the S&OP cockpit (white-box, drill-down, scenario levers).
-- ⚠️ **Privacy:** real names + a private startup's details. Commit is **local only** — do NOT push to a public remote without redacting.
+**Date:** 2026-08-12 (supersedes the earlier version of this file from the same day).
+**Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH).
+**Why:** session hit ~130k context. The reading and alignment phase is **complete and durable in files**. The next
+session builds mockups, which is where Lavi and the agent iterate visually.
 
 ---
 
-## What's done & exactly where to read it
-1. **`research/findings.md`** — full grounded research in readable markdown: executive summary, 12 revamp pillars, **9 ranked decisions** (each with options + recommendation + why), cross-cutting themes, all **48 findings** across 6 dimensions, every source cited with URL + year. **Read first.**
-2. **`research/findings.html`** — interactive version (183 KB, offline, light/dark toggle). Same content, clickable links.
-3. **`research/vision-state.md`** — the strategic pivot + Claude's recommendation + inputs-to-ingest + next-session job + open questions. **Read second.**
-4. Raw research JSON (re-extraction only): `/private/tmp/claude-501/-Users-lavisahu/8ca3b857-b564-41c1-ac68-119fa2e18b8b/tasks/wyys62zwa.output` → `.result.dimensions[]`, `.result.brief`. *(Temp file — may be cleaned; `findings.md` is the durable copy.)*
+## Read this first
+
+**`SCOPE.md`** — the locked build scope. It is the contract for this revamp and it is current. Do not re-derive
+any of it; it already contains the positioning, the 9 build decisions, the scenario matrix, the lever list, the
+Stage-4 method, the visual direction, the research corrections (§8b), and the design rules from the transcript (§7).
+
+Everything below is *only* what `SCOPE.md` does not already say.
 
 ---
 
-## Lavi's strategic pivot (headline — overrides earlier "stdlib-only" framing)
-1. **Drop the Python-stdlib-only constraint.** Go more elaborate (allow `pandas`/`numpy`; keep the dashboard hand-rolled HTML/SVG for IBCS visual control).
-2. **NO optimizer route** (no LP/MIP solver) — confirmed.
-3. **All possible scenarios + user levers** → an interactive S&OP **what-if simulator** (drag levers, recompute, compare scenarios).
-4. **Both Gartner Stage 3 AND Stage 4.**
-5. Bar: **real realism, detailed, not a toy, impeccable visuals, double-click drill-down.** "Multiple scenarios, depth, connections, parameters that are connected, easy to understand."
+## Status
 
-**Claude's reframe (confirm with Lavi in fresh session):** no-optimizer is *compatible* with elaborate — scenarios/levers = parameter sweeps recomputed by readable rules (TOC heuristic, rolling inventory `Opening+Production−Demand=Closing`, contribution-margin rationing, MAPE/forecast-error), NOT optimization. Reposition from "zero-dependency white-box" to **"fully transparent planning logic — no proprietary optimizer, every lever traceable."** Stage-4 probabilistic demand via sampling/distributions, not solving.
-
-**Open debate Lavi flagged:** scope of "all scenarios + various levers" can sprawl — define the scenario matrix + lever list deliberately so it stays comprehensible (not a toy in the *other* direction — bloated).
-
----
-
-## Fresh-session job (STRICT ORDER — NO code until aligned)
-1. **Read:** `research/findings.md` + `research/vision-state.md` + `research/wispr-transcript.md` + the **11 screenshots** at `~/Documents/Screenshot/SCR-20260805-*.{jpeg,png}`.
-2. **Synthesize** "here's what I understand" → confirm same page with Lavi.
-3. **Iterated HTML mockups**, ONE section at a time: layout shell → scenario comparison → lever/drill-down interaction → KPI tiles → margin waterfall. Lavi approves/corrects each.
-4. **Lock scope** (reframe the 9 decisions against the pivot) → then implement.
+| Phase | State |
+|---|---|
+| Grounded research (6 dimensions, 105 sources) | done — `research/findings.md`, `research/findings.html` |
+| Transcript read + feedback extracted | **done** — folded into `SCOPE.md` §7 |
+| All 6 screenshots read | **done** — folded into `SCOPE.md` §6b |
+| Engine + spec digested | done — see "Engine facts" below |
+| Scope locked | **done** — `SCOPE.md` |
+| Mockups | **not started — this is the next job** |
+| Implementation | not started. Do not start it. |
 
 ---
 
-## The 9 decisions (full text in `findings.md` § Top decisions)
-1 Scope/identity (white-box audit cockpit) · 2 Gartner maturity target · 3 Demand representation (deterministic vs forecast cone) · 4 Rationing-rule correction (one-line TOC fix vs LP) · 5 Rolling cycle depth · 6 Backorder policy · 7 Allocation-rule posture · 8 Visualization posture (strict IBCS shared-scale) · 9 "Gross margin"→contribution-margin rename.
-**Note:** Decision 1 (stdlib positioning) is now in flux per the pivot — re-litigate first in the fresh session.
+## What changed this session (corrections worth knowing)
+
+Three things were wrong in earlier drafts because they came from subagent summaries rather than the sources.
+All three are now fixed in `SCOPE.md`; they are listed here so the next session doesn't reintroduce them.
+
+1. **The transcript is not an S&OP discussion.** It is the zerOm intro meeting (causal engine `axon.`, promotions
+   demo on Union Coop data). Lavi is the EY consultant giving critical feedback — *his critique is the design brief.*
+2. **The screenshots are not IBCS dashboards.** They are frames from a dark-canvas product deck
+   ("KitchenOS / CMO Persona Walkthrough", slides 7, 9, 17, 19, 21 of 30). They are the reference for *visual
+   quality and interaction patterns*, not chart grammar.
+3. **Human-in-the-loop override was wrongly scoped out.** It is one of Lavi's recurring asks and appears in three
+   of the six screenshots. Reopened in `SCOPE.md` §8, still needs Lavi's call on depth.
 
 ---
 
-## Repo / run facts
-- Regenerate current dashboard: `PYTHONPATH=src python3 -m sop_integrated_planning.cli dashboard` → `output/dashboard.html`.
-- Tree was clean before this session; new untracked `research/` + this handoff are committed locally (no push).
+## Engine facts (from the codebase digest — saves you a re-read)
+
+- 9 modules: `models`, `datagen`, `demand`, `capacity`, `constrain`, `finance`, `kpi`, `dashboard`, `cli`.
+- Scenarios are a **hardcoded enum** (BASE/UPSIDE/CONSTRAINED) with parameters as literal tables in `datagen.py`.
+  No config file, no CLI overrides, **no lever surface of any kind** exists today.
+- `dashboard.build_context()` assembles JSON; `render_dashboard()` does a `__DATA_JSON__` string-replace into a
+  single self-contained HTML file. Inline CSS, hand-rolled SVG, vanilla JS. **The renderer never recomputes anything.**
+  Today's only interactivity is scenario tabs and a theme toggle.
+- Regenerate: `PYTHONPATH=src python3 -m sop_integrated_planning.cli dashboard` → `output/dashboard.html`.
+
+### The architecture fork that is still open
+
+Client-side lever-drag recompute means **porting the planning math to JS**. Options considered: local compute
+server (breaks the single self-contained file) and a precomputed lever grid (caps levers to a fixed grid) — both
+rejected. **Recommendation, not yet confirmed by Lavi: port to JS, Python stays the reference implementation, and
+a golden-fixture test asserts the JS reproduces Python's numbers for the 4 presets.**
+
+`constrain.py`'s rationing loop is sequential and stateful (inventory carry + margin-priority order) — it is the
+one piece where a naive JS port will silently differ. Fixture-cover it first.
 
 ---
 
-## Suggested skills (next session)
-- **`/brief`** — keep scannable output (this session ran brief).
-- **`artifact-design` + `dataviz`** — load BEFORE the first cockpit mockup (IBCS discipline, color formula, mark specs). Holds the "impeccable" bar.
-- `claude-api` — only if a real LLM/forecast layer gets wired (unlikely under the no-solver stance).
-- Skip `code-review` / `simplify` until implementation lands.
+## In flight when this handoff was written
+
+One background agent was still running: a rewrite of **`mockups/tokens.css`** from light-primary to **dark-primary**
+with IBCS notation tokens. **Verify the file before building on it** — check it is dark-primary and that the
+notation tokens (actual solid / plan outline / forecast hatched, variance with ▲▼ glyphs, 4-step confidence line
+weights) exist. If the rewrite didn't land, redo it against `SCOPE.md` §6b.
+
+---
+
+## Next job — mockups, one at a time, each approved before the next
+
+Order is fixed in `SCOPE.md` §9: **layout shell → scenario comparison → levers/drill-down → KPI tiles → margin waterfall.**
+
+Start with the **layout shell**. Constraints that bind it, all from `SCOPE.md`:
+- Dark editorial canvas, IBCS notation inside charts, no glow, no gradients, no drop shadows.
+- Small-multiples grid: rows = metrics, columns = scenarios, shared y-domain per metric-unit.
+- Headline band up top (recommended scenario + binding-constraint callout, "5-second rule").
+- Right-hand narrative rail. Cap 5–7 visible charts.
+- Colour encodes **variance only** — scenario identity is fill pattern.
+- Every text/background pair contrast-checked (Lavi caught an unreadable label live in the zerOm demo).
+
+**Acceptance test for every number that ever appears:** it must be reproducible by hand in Excel (`SCOPE.md` §7).
+
+### Two open questions for Lavi
+
+1. **Planner override / HITL** — in scope, and how deep? (`SCOPE.md` §8)
+2. **The JS-port fork** — confirm the golden-fixture approach above.
+
+### Blocker on the Stage-4 goal
+
+Stage 4 needs an explicit revenue/margin **target per scenario** plus a gap-to-plan line in $ and %.
+`data/families.json` has **no targets**. That is new input data, not just a new chart. Raise it before claiming Stage 4.
+
+---
+
+## Suggested skills
+
+- **`/brief`** — this session ran in brief mode; Lavi prefers it.
+- **`dataviz`** — load **before** writing the first line of chart code. Non-optional for this work.
+- **`artifact-design`** — layout/visual fundamentals for the mockups.
+- Skip `code-review` / `simplify` until implementation actually lands.
 
 ---
 
 ## Working style (carry forward)
-- Judge files/diffs, never prose. Verify every claim before stating it.
-- Lavi is terse, decisive, pushes back on badly-scoped work — give a recommendation + one clear next action, not exhaustive surveys.
-- He wants to be grilled and to debate scope (esp. stdlib-vs-elaborate + "all scenarios" sprawl). Define the lever/scenario matrix deliberately; don't over-build.
-- **Do NOT implement until he confirms same page.** He said so explicitly.
+
+- **Judge files and diffs, never prose.** Two executors have reported success having changed zero files.
+- **Read the sources yourself when they are the design input.** This session's three errors all came from trusting
+  subagent summaries of the transcript and screenshots. Delegate breadth; read the things you are designing from.
+- **Verify before claiming.** State it as verified only after running it; otherwise label `Assumption:`/`Unknown:`.
+- Lavi is terse and decisive, pushes back on badly-scoped work, and wants to be grilled. Give a recommendation
+  and one next action — not a survey of options.
+- **Do not implement until he confirms.** He has said so explicitly, twice.
+
+---
+
+## Privacy
+
+`research/wispr-transcript.md` contains real names and a private startup's commercial details.
+**Local commits only — do not push to any public remote without redacting.**
