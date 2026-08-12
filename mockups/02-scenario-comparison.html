@@ -383,7 +383,7 @@ tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
   // Geometry: scenario names live in a left GUTTER, never inside the bar — a
   // zero-length bar (Base lost margin, Base unmet) would otherwise print its
   // label on top of its value.
-  var BW = 460, BH = 70, GUTTER = 74, BPAD_R = 74, ROWH = 18, GAP = 4;
+  var BW = 460, BH = 70, NOTE_BH = 92, GUTTER = 74, BPAD_R = 74, ROWH = 18, GAP = 4;
 
   function drawLevels(metric) {
     var vals = SC.map(function (s) { return A[s][metric.key]; });
@@ -392,10 +392,15 @@ tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
     // Fill rate lives in a narrow band near 100 — a 0-based axis would flatten it
     // to three identical bars, so this one metric is banded and SAYS SO on screen.
     var lo = metric.key === "fill" ? Math.floor(min - 0.5) : 0;
+    var hasNote = lo !== 0;
+    // The axis note is its own text line below the rows — reserve real room for
+    // it (NOTE_BH) instead of cramming it into the same box, which collided with
+    // the last row's bar/value (found on re-render 2026-08-13).
+    var chartH = hasNote ? NOTE_BH : BH;
     var hi = max * 1.02 || 1;
     var plotW = BW - GUTTER - BPAD_R;
     var x = function (v) { return GUTTER + ((v - lo) / (hi - lo)) * plotW; };
-    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + BH, role: "img" });
+    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + chartH, role: "img" });
 
     SC.forEach(function (sid, i) {
       var y = i * (ROWH + GAP) + 2, v = A[sid][metric.key];
@@ -427,8 +432,8 @@ tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
     });
 
     svg.appendChild(svgEl("line", { x1: GUTTER, y1: 0, x2: GUTTER, y2: BH - 10, class: "axis-line" }));
-    if (lo !== 0) {
-      var z = svgEl("text", { x: GUTTER, y: BH - 2, class: "tick-text" });
+    if (hasNote) {
+      var z = svgEl("text", { x: GUTTER, y: chartH - 4, class: "tick-text" });
       z.textContent = "axis starts at " + metric.fmt(lo) + ", not zero";
       svg.appendChild(z);
     }
