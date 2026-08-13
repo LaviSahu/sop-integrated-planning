@@ -43,10 +43,7 @@ Every headless capture tool on this Mac renders the dashboard **black**: system 
 
 ## Pending (the immediate next step)
 
-**Commit the 3 snapshots** in `docs/img/` (untracked, dropped by Lavi):
-- `docs/img/SCR-20260813-sbto.png`, `SCR-20260813-sbto-2.png`, `SCR-20260813-sbyr-2.png`
-- Wire them into the README ("See it" section) as the dashboard preview images.
-- Commit + push (use `GIT_SSH_COMMAND="ssh -o BatchMode=yes -i ~/.ssh/id_lavisahu -o IdentitiesOnly=yes"` for push — the agent state is unreliable).
+**DONE — 2026-08-13 (a523641, pushed):** committed the **9** dashboard snapshots (not 3 — Lavi had dropped more; the `-2` variants were byte-identical duplicates and were deleted), resized to 1600px max, wired into the README's "See it live" section as a 3×3 captioned gallery (captions verified by macOS Vision OCR against the dashboard's real section titles). Push used the SSH key from the next line. The live Pages URL remains the primary demo.
 
 ## Other not-started items (deferred, Lavi's call)
 
