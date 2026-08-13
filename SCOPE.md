@@ -112,11 +112,11 @@ graphs and token-cost breakdowns would be theatre. Every pattern we take must be
 
 ## 7. Design rules (from Lavi's critique of zerOm in the transcript)
 
-Source note: the transcript is the **zerOm intro meeting** — their causal engine `axon.` plus a promotions demo on
-Union Coop data. It is not an S&OP discussion. Lavi is the EY supply-chain consultant giving critical feedback,
+Source note: the transcript (the **zerOm intro meeting** — their causal engine `axon.` plus a promotions demo on
+Union Coop data) is **not in this repo** — it was purged for privacy (real names + private commercial details).
+It is not an S&OP discussion. Lavi is the EY supply-chain consultant giving critical feedback,
 and **that critique is the design brief.** The reference screenshots are separately from a "KitchenOS / CMO Persona
-Walkthrough" product deck. Full transcript read complete; timestamps below are traceable in
-`research/wispr-transcript.md`.
+Walkthrough" product deck. The transcript content was read once; its analysis is captured in `research/vision-state.md`.
 
 ### The governing requirement
 

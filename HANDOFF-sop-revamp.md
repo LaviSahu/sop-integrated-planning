@@ -103,5 +103,5 @@ The built cockpit is `make dashboard` → `output/dashboard.html` — one self-c
 
 ## Privacy
 
-`research/wispr-transcript.md` contains real names and a private startup's commercial details.
+`research/wispr-transcript.md` **was purged from the repo 2026-08-13** (it held real names and a private startup's commercial details). It is gone from history, not just the working tree. If you need the raw paste again, it lives in the session archive / Notemarkup, **not in git.**
 **Local commits only — do not push to any public remote without redacting.**
