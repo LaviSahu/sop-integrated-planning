@@ -39,6 +39,8 @@
 
 Every headless capture tool on this Mac renders the dashboard **black**: system Chrome (file + live URL), Playwright Chromium (all flags/themes), Playwright WebKit. Root cause: dark `#0a0b0f` canvas + transparent child backgrounds rasterize black in every headless engine. **Lavi screenshotted manually** into `docs/img/`. The live Pages URL IS the demo.
 
+**Gallery image paths (gotcha, fixed 2026-08-13, `4738600`):** Pages source is `/docs`, so the site root IS the repo's `docs/` folder. The README gallery originally used repo-relative `docs/img/x.png` — on the site that resolved to `docs/docs/img/...` and **all 9 404'd**. Fixed by switching the gallery to **absolute Pages URLs** (`https://lavisahu.github.io/sop-integrated-planning/img/*.png`), which work on both the GitHub README view and the site. Verified: all 9 images + dashboard + root return 200.
+
 ---
 
 ## Pending (the immediate next step)
