@@ -13,9 +13,10 @@ start mockup 5 until mockup 4's redesign is approved.
 **`SCOPE.md`** — the locked build scope, current. §4 = lever list, §6b = the 5-step provenance-modal pattern +
 chart grammar, §9 = mockup build order (each mockup needs approval before the next).
 
-**New this session:** `mockups/.claude/skills/impeccable` — a third-party design skill (pbakaus/impeccable,
-58.6k★, installed project-scoped 2026-08-13, full details below). Load it via the Skill tool for the mockup 4
-redesign — this is exactly the tool for turning Lavi's "looks like AI slop" feedback into a concrete fix.
+**New this session:** `.claude/skills/impeccable` — a third-party design skill (pbakaus/impeccable, 58.6k★,
+installed project-scoped 2026-08-13, git-sourced 2026-08-13, full details below). Load it via the Skill tool
+for the mockup 4 redesign — this is exactly the tool for turning Lavi's "looks like AI slop" feedback into a
+concrete fix.
 
 ---
 
@@ -25,13 +26,32 @@ redesign — this is exactly the tool for turning Lavi's "looks like AI slop" fe
 |---|---|
 | Research, transcript, screenshots, scope lock | done (unchanged) |
 | `mockups/tokens.css` contrast audit | done (unchanged) |
-| `mockups/build_data.py` + `mockups/data.js` | done (unchanged this session) |
+| `mockups/build_data.py` + `mockups/data.js` | done (unchanged) |
 | **Mockup 1 — layout shell** | done, approved |
 | **Mockup 2 — scenario comparison** | done, approved |
 | **Mockup 3 — levers + drill-down** | done, approved |
 | **Mockup 4 — KPI tiles** | built + verified working, **REJECTED on design — redo before proceeding** |
-| Mockup 5 — margin waterfall | built + verified (click-sim 10/10), contrast-fixed; awaiting Lavi's verdict |
+| **Mockup 5 — margin waterfall** | **done, verified (click-sim 10/10), contrast-fixed — awaiting Lavi's verdict** |
 | Implementation | not started. Do not start it. |
+
+---
+
+## This session (2026-08-13, supersedes "Why" above)
+
+- **Mockup 5 built despite the block.** Lavi explicitly asked for it over the HANDOFF's "blocked on mockup 4
+  redesign" — user instruction overrode the doc. `mockups/05-margin-waterfall.html` (new), the vertical margin
+  bridge per SCOPE §8b. Verified via headless click-sim: 4 bars + 4 bridge-table rows all open the correct
+  rollups, arithmetic reconciles exactly (`$52.20M + $8.42M − $0.53M = $60.09M`). **Committed `effe3d7`,
+  pushed.**
+- **Lavi's verdict on mockup 5: "can be improved — sometimes text is not readable inside the chart."** Fixed
+  the two contrast bugs (see "What changed"). Mockup 5 was re-opened for his review but **his verdict is not
+  yet final** — the contrast fix needs a fresh eyeball.
+- **`impeccable` imported from git.** Replaced the old copy with a fresh clone of `pbakaus/impeccable` HEAD
+  (`bd25359`, v4.0.4, 153 files) at `.claude/skills/impeccable` (project-scoped, gitignored). Byte-identical
+  to upstream. No separate "taste" skill exists — impeccable carries the taste/craft guidance itself.
+
+**Remaining open thread: mockup 4's design rejection** (Lavi: "not very interactive, looks plain, AI slop").
+The redesigned mockup 4 must be shown and approved before implementation. See "Immediate next step" below.
 
 ---
 
@@ -47,7 +67,7 @@ the **visual/interaction design** was.
    the full dual-subagent `critique` pipeline. Start fresh with real budget: run
    `Skill(impeccable, "critique mockups/04-kpi-tiles.html")` or go straight to
    `Skill(impeccable, "bolder mockups/04-kpi-tiles.html")` — "bolder" is impeccable's command for exactly this
-   complaint ("Amplify safe or bland designs"), see `mockups/.claude/skills/impeccable/reference/bolder.md`.
+   complaint ("Amplify safe or bland designs"), see `.claude/skills/impeccable/reference/bolder.md`.
 2. **Reconsider real interactivity, not just click-to-modal.** Every tile currently only does one thing: click
    "Why?" → static modal. Candidates worth evaluating (not a locked list): hover states that reveal more than
    a tooltip, a live sparkline/trend strip per tile (data exists — `D.scenarios[x].utilization` and
@@ -78,8 +98,9 @@ initially saying "load impeccable skill for design" ambiguously. Explained its f
 convention) and the collision risk with this repo's own locked `DESIGN.md`/`SCOPE.md` — Lavi chose **full
 install, project-scoped**.
 
-- Installed at `mockups/.claude/skills/impeccable` (copied from a shallow clone of the repo's
-  `.agents/skills/impeccable`, 3.4M, 153 files) — not global, per this machine's skill policy.
+- **Installed at `.claude/skills/impeccable`** (not `mockups/.claude/` — that was a symlink artifact).
+  **Refreshed from git 2026-08-13** (fresh clone of `pbakaus/impeccable` HEAD `bd25359`, v4.0.4, 153 files,
+  byte-identical). The repo's `.gitignore` excludes `.claude/`, so it's local-only.
 - **No npm install performed.** Core `.mjs` scripts (setup, reference loading) use only Node built-ins. The
   antipattern detector (`audit`/`hooks`) needs 6 pure-JS npm packages (`css-select`, `css-tree`, `domutils`,
   `fflate`, `htmlparser2`, `marked`); `live`'s copy-edit-agent needs `@babel/parser` + `react`; screenshot
@@ -132,6 +153,28 @@ of `.tile__why`): the class had no UA-button reset (`appearance`/`background`/`b
 `<button class="tile__why">` (needed for keyboard operability, not just an `<a>`) rendered as a grey boxed
 button instead of the intended cyan text link. Fixed directly in `tokens.css` since this is a genuine
 component gap that predates this mockup's first real usage of `.tile__why`.
+
+### New: `mockups/05-margin-waterfall.html` (built, verified, contrast-fixed)
+The final mockup — the **margin waterfall** (SCOPE §8b: *"vertical waterfall — base → +upside lift →
+−constrained penalty → realized"*). Built by copying mockup 4's shell/theme/modal/rollup/provenance plumbing
+verbatim (per this doc's reuse rule) and replacing the presentation layer with a single waterfall SVG + a
+tabular bridge panel (SCOPE §7 rule 13: complex structures collapse to a table).
+
+- **Waterfall arithmetic is all live from `data.js`, nothing hardcoded**: Base `$52.20M` → +Upside lift
+  `$8.42M` → −Constrained penalty `$531,728.01` → Realized `$60.09M`. Verified to reconcile exactly.
+- **Interactivity**: each of the 4 bars and each of the 4 bridge-table rows opens the correct rollup
+  (`openBaseRollup`/`openUpsideValueRollup`/`openMarginAtRiskRollup`/`openConstrainedRollup`), each with real
+  per-family arithmetic; reuses the mockup-4 `openModal` 5-step provenance where it bottoms out.
+- **Verified**: headless click-sim 10/10 (4 bars + 4 table rows open non-empty modals, no JS errors, bridge
+  table values correct). Same harness pattern as mockup 4 (append script to a copy, read `document.title`).
+
+**Lavi's feedback: "sometimes text is not readable inside the chart" → contrast fix (impeccable's
+craft-floor rule: *"on colored surfaces tint text from the foreground, never the hue"*):**
+- Delta labels inside colored bars (▲ `$8.42M`, ▼ `$531,728.01`, `$60.09M`) were good/bad **hue-on-hue** →
+  now white with a dark halo (`.wf__label-on-bar`, `paint-order: stroke`).
+- The Base bar is near-white ink (`#f5f6f8`), so its label was **white-on-white** → now dark ink
+  (`.wf__label-on-light`, `#14161c`).
+- Re-verified after the fix: click-sim still 10/10, label classes confirmed in the DOM dump.
 
 ### Verification method (unchanged from mockup 3, extended)
 Syntax check (`node --check` on the extracted inline script) → headless-Chrome screenshot → a **click-
@@ -192,19 +235,22 @@ scenario — QA and Packaging stay under 93% throughout all 3 scenarios × 12 mo
 
 ## Next jobs, in order
 
-1. **Redesign mockup 4** — see "Immediate next step" above. Do not skip to mockup 5.
-2. Get Lavi's approval on the redesigned mockup 4.
-3. Mockup 5 — margin waterfall.
-4. Only after Lavi approves all 5: revisit the two open engine-architecture questions before implementation.
+1. **Get Lavi's verdict on mockup 5's contrast fix** — the fix landed after his "text unreadable" feedback;
+   needs a fresh eyeball before mockup 5 is final.
+2. **Redesign mockup 4** — see "Immediate next step" above. The one blocking item for implementation.
+3. Only after Lavi approves all 5: revisit the two open engine-architecture questions before implementation.
 
 ---
 
 ## Suggested skills
 
-- **`impeccable`** (project-scoped, `mockups/.claude/skills/impeccable`) — load first for the mockup 4
-  redesign. Try `bolder` directly (Lavi's complaint is literally "too plain/safe"), or run the real `critique`
-  command with subagents this time now that context is fresh. Read `reference/craft-floor.md`'s "Refuse" list
-  before re-adding the hero-metric-tile pattern unmodified.
+- **`impeccable`** (project-scoped, `.claude/skills/impeccable`, git-sourced from `pbakaus/impeccable` HEAD)
+  — load first for the mockup 4 redesign. Try `bolder` directly (Lavi's complaint is literally "too
+  plain/safe"), or run the real `critique` command with subagents now that context is fresh. Read
+  `reference/craft-floor.md`'s "Refuse" list before re-adding the hero-metric-tile pattern unmodified. Note:
+  the Skill tool may not recognize it mid-session (project-skill discovery delay) — follow `SKILL.md`
+  directly, and run `node .claude/skills/impeccable/scripts/context.mjs --target <file>` first (it surfaces
+  the project's DESIGN.md as visual authority and won't clobber it).
 - **`dataviz`** — still the project convention for any chart, non-optional; the redesign may add a sparkline
   or trend element per tile, which falls under this skill's mark specs.
 - **`/brief`** or **`/terse`** — Lavi runs sessions compressed; pick whichever is active or ask.
@@ -228,16 +274,14 @@ scenario — QA and Packaging stay under 93% throughout all 3 scenarios × 12 mo
 
 ---
 
-## Git state — uncommitted
+## Git state — clean, pushed
 
-Nothing has been committed this session (project convention: never commit without being asked). Working tree
-currently has:
-```
- M mockups/01-layout-shell.html
- M mockups/02-scenario-comparison.html
- M mockups/build_data.py
- M mockups/data.js
- M mockups/tokens.css
+All work is committed and pushed (`origin/main`, remote `github-lavisahu`):
+- `145c895` — mockups 1–4 verified + data.js regeneration
+- `effe3d7` — mockup 5 (margin waterfall) + HANDOFF status
+
+Working tree is clean. `.claude/` (impeccable skill) is untracked + gitignored — local only, per the repo
+convention. Nothing pending commit.
 ?? .claude/                          (impeccable skill, project-scoped)
 ?? mockups/03-levers-drilldown.html
 ?? mockups/04-kpi-tiles.html         (built, rejected on design — will change again next session)
