@@ -1,0 +1,1767 @@
+/* =============================================================================
+   tokens.css — IBCS-style S&OP planning-cockpit design tokens
+   =============================================================================
+   DARK-PRIMARY REWRITE (2026-08-12). This file previously shipped
+   light-primary, inverted from dark reference screenshots — backwards for a
+   cockpit meant to sit open on a screen for hours. Flipped: dark is now the
+   default appearance, light is an explicit opt-in override (see the
+   [data-theme="light"] block near the end). Structure and the `sop-` prefix
+   are unchanged from the previous version.
+
+   Grounded in 4 reference screenshots, referenced below by short id:
+     A = SCR-20260805-tadk.png — cross-edition "moat" network + the
+         TRANSFER CONFIDENCE legend (line thickness = confidence tier,
+         dashed = experimental / low confidence)
+     B = SCR-20260805-smhs.png — three-lens canvas: KPI tile row, KPI
+         Health status-dot list, UOKG Explain decomposition drawer,
+         narrative rail
+     C = SCR-20260805-syiu.png — 4-agent verdict cards + confidence chips
+     D = SCR-20260805-slit.png — "how this number was produced" provenance
+         modal + narrative rail with a bordered callout box
+
+   RESTRAINED HUE POLICY — why this palette is short: across A/B/C/D the
+   source deck uses 6+ decorative hues (A alone colors five edition nodes
+   orange/blue/green/purple/amber purely for visual variety, with no data
+   meaning tied to the hue itself — that is deck styling, not notation). A
+   planning cockpit is read for numbers under time pressure, so hue is
+   budgeted to exactly 5 slots: one BRAND accent (identity/navigation only,
+   never a data series) plus four SEMANTIC colors — good / bad / warn /
+   info. Every other colored element in the screenshots (edition badges,
+   agent-card left borders, network-node rings) is reproduced here as
+   NEUTRAL INK instead, distinguished by weight, fill style, or line
+   pattern rather than hue. Enforced token-by-token below, not just stated
+   here — every color token's comment says which of the 5 slots it fills.
+
+   NO GLOW: A's node rings and B's purple-glow "focused" KPI tile both use
+   a soft, blurred, tinted box-shadow — decorative "sci-fi product demo"
+   glow. Dropped on purpose: it doesn't export to PDF/print predictably,
+   and it opens a second, non-semantic color channel that competes with
+   the good/bad/warn/info signal a reader actually needs to trust. Depth
+   instead comes from --sop-color-surface elevation plus a 1px hairline
+   border; where a shadow exists at all (modal separation, focus ring) it
+   is small and 0-to-2px blur — never a bloom.
+
+   Every token is commented "from X.png: ..." (directly observed) or
+   "derived: ..." (no direct screenshot evidence — inferred from IBCS
+   convention or built for internal consistency). Nothing is invented
+   without a comment saying so. Still lives in mockups/ as a DESIGN
+   EXPLORATION, not wired into the build — the frozen production token set
+   is in ../DESIGN.md.
+   ========================================================================= */
+
+:root {
+
+  /* ---------------------------------------------------------------------
+     1. SURFACE / BACKGROUND
+     canvas -> surface -> surface-raised is a 3-step lift, each step a
+     hairline border, never a shadow-only lift.
+     --------------------------------------------------------------------- */
+  --sop-color-canvas:          #0a0b0f; /* from A/B/C/D: near-black page background behind every card */
+  --sop-color-surface:         #14161e; /* from B/C: KPI-tile / agent-card fill, one step lighter than canvas */
+  --sop-color-surface-sunken:  #0f1116; /* from D: inset numbered pipeline-step rows sit slightly darker than the modal surface */
+  --sop-color-surface-raised:  #181b26; /* from D: the provenance modal itself reads one step lighter than a plain card, sitting on a dimmed page */
+  --sop-color-scrim:           rgba(6, 7, 10, 0.72); /* from D: the page behind "How this number was produced" is dimmed, not just covered */
+  --sop-color-border:          rgba(255, 255, 255, 0.08); /* from B/C/D: thin, low-opacity hairline card borders throughout */
+  --sop-color-border-strong:   rgba(255, 255, 255, 0.16); /* derived: heavier divider, e.g. under a table header row */
+  --sop-color-step-connector:  rgba(255, 255, 255, 0.14); /* from D: the connector between the 5 numbered provenance steps */
+
+  /* ---------------------------------------------------------------------
+     2. TEXT HIERARCHY
+     --------------------------------------------------------------------- */
+  --sop-color-text-primary:    #f5f6f8; /* from B/D: headline and KPI-number near-white */
+  --sop-color-text-secondary:  #9aa0ab; /* from B: chart-legend / narrative-rail body copy grey */
+  --sop-color-text-muted:      #828997; /* from A/C: dim tracked-uppercase micro-labels ("TRANSFER CONFIDENCE", "VERDICT"). Lifted from the screenshot's #6b7280, which measured 3.73:1 on surface — under AA for 11px text. Now 5.14:1 surface / 4.88:1 raised / 5.60:1 canvas. */
+  --sop-color-text-inverse:    #14161c; /* derived: text set on a solid-fill light chip (e.g. a filled status pill) */
+
+  /* ---------------------------------------------------------------------
+     3. BRAND / ACCENT HUE — the ONE decorative hue in the system (see the
+     restrained-hue policy above). Purple recurs as pure identity/nav
+     across the deck, never as a data-series color: the ACT chip in A, the
+     "Explain" mode dot + UOKG drawer icon in B, the Simulation-Agent card
+     in C. Used sparingly here too: selected-tab underline, focus ring,
+     one icon — never a chart series.
+     --------------------------------------------------------------------- */
+  --sop-color-brand:           #a78bfa; /* from A/B/C: purple accent, read directly off the dark screenshots */
+  --sop-color-brand-subtle:    rgba(167, 139, 250, 0.16); /* derived: tint for selected-nav/focus backgrounds */
+
+  /* ---------------------------------------------------------------------
+     4. IBCS NOTATION INK — actual / plan / forecast / previous year
+     None of the 4 screenshots contain real IBCS bar/variance notation (no
+     scenario bars anywhere in the deck). This whole block is therefore
+     DERIVED from IBCS convention: one neutral ink, distinguished by FILL
+     STYLE and WEIGHT alone, never by hue — hue stays reserved entirely
+     for the good/bad/warn/info signal in section 5.
+     --------------------------------------------------------------------- */
+  --sop-color-ink:              #f5f6f8; /* derived: same value as --sop-color-text-primary — actual = solid fill in this ink, plan/budget = outline stroke in this ink */
+  --sop-color-ink-soft:         #8b90a0; /* derived: mid-grey — forecast = hatched fill in this ink */
+  --sop-color-ink-faint:        #646a78; /* derived: dimmest grey — previous year = flat SOLID fill in this ink ("light solid": present, but visually receded behind actual). Lifted from #565b68, which measured 2.66:1 on surface — under the 3:1 non-text floor for a data mark. Now 3.33:1 surface / 3.17:1 raised. */
+
+  /* ---------------------------------------------------------------------
+     5. SEMANTIC PAIR/QUAD — good / bad / warn / info
+     Clearest direct evidence in the set: B's KPI deltas (▲12.4%/▲12.0% in
+     green, ▼2.1% in red-adjacent), C's verdict chips (green "Primary
+     cause"/"Validates Market" vs amber "Correlation only"), D's amber
+     "WARNING (-5.8%)" and green "HIGH" confidence badge, and B/D's blue
+     hyperlinks + tab indicator. Per the task's accessibility requirement
+     this pair is NEVER carried by hue alone in the utility classes below:
+     .variance-positive/.variance-negative always render a ▲/▼ glyph via
+     ::before (section 15), and .status-dot is always paired with text,
+     never shown alone (section 13).
+     --------------------------------------------------------------------- */
+  --sop-color-good:             #34d399; /* from B: up-delta green, e.g. "▲12.4%" */
+  --sop-color-good-bg:          rgba(52, 211, 153, 0.12);
+  --sop-color-bad:              #f87171; /* from B/C: down-delta / "Causes" red */
+  --sop-color-bad-bg:           rgba(248, 113, 113, 0.12);
+  --sop-color-warn:             #fbbf24; /* from C/D: amber "Below target" dot, "WARNING (-5.8%)", HITL/approval-required pill */
+  --sop-color-warn-bg:          rgba(251, 191, 36, 0.12);
+  --sop-color-info:             #22d3ee; /* from B/D: "Understand" tab dot, "Why?"/provenance hyperlinks. Moved off the screenshot's #60a5fa blue, which measured ΔE 10.2 (normal vision) / 0.3 (deutan) against the brand purple — indistinguishable. Cyan measures ΔE 21.2 normal / 11.4 deutan, and 9.99:1 on surface. */
+  --sop-color-info-bg:          rgba(34, 211, 238, 0.12);
+
+  /* ---------------------------------------------------------------------
+     6. CHART INK
+     --------------------------------------------------------------------- */
+  --sop-color-chart-grid:       rgba(255, 255, 255, 0.06); /* derived: faint gridline */
+  --sop-color-chart-axis:       rgba(255, 255, 255, 0.16); /* derived: axis line/tick, one step stronger than grid */
+  --sop-color-chart-actual:     var(--sop-color-ink);       /* derived: actual = solid ink fill, see .mark-actual */
+  --sop-color-chart-plan:       var(--sop-color-ink);       /* derived: plan/budget = same ink, OUTLINE only, see .mark-plan */
+  --sop-color-chart-forecast:   var(--sop-color-ink-soft);  /* derived: forecast = lighter ink, HATCHED, see .mark-forecast */
+  --sop-color-chart-prior-year: var(--sop-color-ink-faint); /* derived: previous year = faintest ink, flat SOLID fill, see .mark-prior-year */
+  --sop-color-chart-highlight:  var(--sop-color-brand);     /* from B: the one purple-outlined "currently focused" KPI tile — marks the single selected metric on a chart, sparingly */
+
+  /* ---------------------------------------------------------------------
+     7. CONFIDENCE / FORECAST-CONE SCALE
+     Directly observed in A's "TRANSFER CONFIDENCE" legend: line thickness
+     encodes a 4-step confidence tier (0.70–1.00 High / 0.40–0.69 Medium /
+     0.20–0.39 Low / 0.00–0.19 Very Low), and the legend states the lowest
+     tier is additionally dashed ("Dashed = experimental / low
+     confidence"). Reused below, by name, for the P10/P50/P90 forecast
+     cone: P50 (the median, most-likely line) takes the high-confidence
+     treatment; the P10/P90 tail bounds take the low-confidence dashed
+     treatment. No new hue is introduced for uncertainty — per the
+     restrained-hue policy, confidence is carried entirely by weight and
+     dash, in neutral ink.
+     --------------------------------------------------------------------- */
+  --sop-confidence-weight-high:       3px;   /* from A: 0.70–1.00 tier, thickest line in the legend */
+  --sop-confidence-weight-medium:     2px;   /* from A: 0.40–0.69 tier */
+  --sop-confidence-weight-low:        1.5px; /* from A: 0.20–0.39 tier */
+  --sop-confidence-weight-verylow:    1px;   /* from A: 0.00–0.19 tier, thinnest */
+  --sop-confidence-dasharray-verylow: 3 3;   /* from A: "Dashed = experimental / low confidence" — SVG stroke-dasharray */
+
+  --sop-cone-p50-weight:      var(--sop-confidence-weight-high); /* derived: forecast-cone median = high-confidence line */
+  --sop-cone-p50-style:       solid;
+  --sop-cone-band-weight:     var(--sop-confidence-weight-low);  /* derived: P10/P90 tail bounds = low-confidence line */
+  --sop-cone-band-style:      dashed;
+  --sop-cone-band-dasharray:  var(--sop-confidence-dasharray-verylow);
+  --sop-cone-band-fill:       rgba(245, 246, 248, 0.06); /* derived: faint neutral-ink tint between P10 and P90 — no dedicated "uncertainty" hue, per the restrained-hue policy */
+
+  /* ---------------------------------------------------------------------
+     8. BORDER / RADIUS / SHADOW (no glow — see header)
+     --------------------------------------------------------------------- */
+  --sop-border-width:            1px;   /* from B/C/D: consistent thin hairline card borders throughout */
+  --sop-radius-sm:                6px;  /* from A: small icon chips (edition badges, agent-card icons) */
+  --sop-radius-md:                10px; /* from B/C: KPI tiles and content cards */
+  --sop-radius-lg:                16px; /* from D: the drill-down modal's outer corner */
+  --sop-radius-pill:             999px; /* from C/D: verdict badges, "HITL"/"HIGH" status pills */
+
+  --sop-shadow-sm:               0 1px 2px rgba(0, 0, 0, 0.4); /* derived: neutral elevation only (modal separation from a dimmed page); glow deliberately omitted, see header */
+  --sop-shadow-focus-ring:       0 0 0 3px var(--sop-color-brand-subtle); /* derived: crisp 0-blur ring, not a bloom — accessible focus indicator */
+
+  /* ---------------------------------------------------------------------
+     9. TYPOGRAPHY
+     System font stack only — the screenshots render in a geometric
+     grotesque consistent with SF/Segoe system rendering; no distinctive
+     custom-font characteristics were visible, so no external font is
+     assumed or required. No CDN, no JS anywhere in this file.
+     --------------------------------------------------------------------- */
+  --sop-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* derived: system stack matching the deck's rendering, per task requirement */
+
+  /* Type scale — sizes read off the deck's clear hierarchy: big bold hero
+     number > bold slide headline > card title > body > table cell >
+     tracked uppercase micro-label. */
+  --sop-text-display:  34px; /* from B/D: KPI hero numbers (₹4.24L, ₹4.24L/day) */
+  --sop-text-h1:        28px; /* from A/B/C/D: bold slide headline, consistently ~28-32px */
+  --sop-text-h2:        16px; /* from B: card/section titles */
+  --sop-text-body:      14px; /* from B/D: right-rail narrative paragraphs and card body copy */
+  --sop-text-small:     13px; /* derived: secondary/table-cell text, one step below body */
+  --sop-text-label:     11px; /* from A/C: tracked uppercase micro-labels ("TRANSFER CONFIDENCE", "VERDICT") */
+
+  --sop-weight-regular:  400;
+  --sop-weight-medium:   500;
+  --sop-weight-semibold: 600; /* from A/C: micro-label and card-title weight */
+  --sop-weight-bold:     700; /* from B/D: KPI hero numbers and headlines */
+
+  --sop-label-tracking:  0.06em; /* from A/C: visible letter-spacing on uppercase micro-labels */
+
+  /* Tabular numerals — from B/D: KPI numbers and the pipeline's numbered
+     step figures sit right-aligned at equal width; direct evidence for
+     tabular (fixed-width) digit rendering everywhere. */
+  --sop-font-feature-tabular: "tnum" 1, "lnum" 1;
+
+  /* One scale for money, one for units — both share the same base sizes
+     so a money tile and a unit tile sit at equal visual weight (B's
+     Revenue/Orders/AOV row), differing only in a smaller muted suffix for
+     scale words ("L", "K", "/day") — from B/D: "₹4.24L/day", "20.6K/day",
+     "5.07x" all pair a bold number with a smaller, muted trailing unit. */
+  --sop-num-lg:            34px; /* hero KPI figure, money or unit */
+  --sop-num-md:            20px; /* secondary figure */
+  --sop-num-sm:            14px; /* table-cell figure */
+  --sop-num-suffix-size:   0.55em; /* derived: relative size of a trailing "/day", "L", "K", "x" unit suffix */
+
+  /* ---------------------------------------------------------------------
+     10. SPACING RHYTHM
+     Card internal padding reads ~20-24px throughout (A/B/C/D); gaps
+     between sibling cards/tiles read ~12-16px. An 8px-multiple scale
+     covers both cleanly.
+     --------------------------------------------------------------------- */
+  --sop-space-1:  4px;
+  --sop-space-2:  8px;
+  --sop-space-3: 12px; /* from A/B/C/D: gap between sibling KPI tiles / agent cards */
+  --sop-space-4: 16px;
+  --sop-space-5: 20px; /* from A/B/C/D: card internal padding (lower end) */
+  --sop-space-6: 24px; /* from A/B/C/D: card internal padding (upper end) / page gutter */
+  --sop-space-8: 32px;
+  --sop-space-10: 40px;
+
+  /* ---------------------------------------------------------------------
+     11. TABLE / GRID
+     --------------------------------------------------------------------- */
+  --sop-table-row-height:  40px;                            /* derived, comfortable with --sop-text-small + --sop-space-2 padding */
+  --sop-table-header-bg:   var(--sop-color-surface-sunken); /* derived */
+  --sop-table-stripe-bg:   rgba(255, 255, 255, 0.025);      /* derived: faint zebra striping, well under WCAG-irrelevant decorative threshold */
+
+  /* ---------------------------------------------------------------------
+     12. KPI-TILE ANATOMY
+     From B/D: micro-label with an info affordance ("Revenue ⓘ") + big
+     bold hero number + a colored delta row (direction glyph + comparison
+     basis, e.g. "▲12.4% vs Apr 1 – Apr 27") + an inline "Why?" drill-in
+     link. Tokens below size the container; the .tile utility (section 16)
+     expresses the anatomy itself.
+     --------------------------------------------------------------------- */
+  --sop-tile-padding:   var(--sop-space-5); /* from B: KPI tile internal padding */
+  --sop-tile-radius:    var(--sop-radius-md);
+  --sop-tile-gap:       var(--sop-space-2); /* from B: vertical gap between label / number / delta rows */
+  --sop-tile-info-size: 14px;               /* from B/D: the small "ⓘ" info-affordance glyph beside each KPI-tile label */
+
+  /* ---------------------------------------------------------------------
+     13. STATUS DOTS — KPI health
+     From B's left-rail "KPI HEALTH" list: a colored dot always paired
+     with a label ("● Revenue", "● Supply Risk"), never a bare dot. Colors
+     reuse the good/warn/bad tokens from section 5 — no new hue.
+     --------------------------------------------------------------------- */
+  --sop-dot-size: 8px; /* from B: KPI Health list dot diameter */
+
+  /* ---------------------------------------------------------------------
+     14. NARRATIVE RAIL
+     From B/D: the right-hand story panel sits directly on canvas with no
+     card border — visually distinct from the hairline-bordered data grid
+     by measure and typography alone, not a box. The one bordered element
+     inside it is a callout: D's "Core tenet" box and B's boxed aside both
+     carry a colored LEFT-border accent, in the info blue (never brand
+     purple — purple stays reserved for nav/identity per the hue policy).
+     --------------------------------------------------------------------- */
+  --sop-color-rail-accent:          var(--sop-color-info); /* from D/B: callout left-border accent */
+  --sop-rail-max-width:             320px; /* derived: comfortable reading measure for the right-hand panel in B/D */
+  --sop-rail-callout-border-width:  3px;   /* from D: the "Core tenet" box's left-border accent reads heavier than the standard 1px hairline */
+}
+
+/* =============================================================================
+   LIGHT THEME — explicit opt-in override, NOT the default
+   Dark is primary per the design brief. Nothing in this file switches to
+   light automatically (deliberately no `@media (prefers-color-scheme:
+   light)` query) — that would make light "the default" for any user whose
+   OS happens to be set to light, exactly the inversion we're avoiding.
+   Apply light explicitly: <html data-theme="light">. None of the 4
+   reference screenshots show a light variant, so every value below is
+   DERIVED as a straight light-inversion of the dark tokens above, kept
+   only for parity with callers that still need a light surface (e.g. a
+   printed handout).
+   ========================================================================= */
+[data-theme="light"] {
+  --sop-color-canvas:          #f7f7f8; /* derived: light inversion of --sop-color-canvas */
+  --sop-color-surface:         #ffffff; /* derived: light inversion of --sop-color-surface */
+  --sop-color-surface-sunken:  #eef0f3; /* derived */
+  --sop-color-surface-raised:  #ffffff; /* derived: modal sits flush with surface in the light variant */
+  --sop-color-scrim:           rgba(20, 22, 28, 0.4); /* derived */
+  --sop-color-border:          #e1e3e8; /* derived */
+  --sop-color-border-strong:   #c7cad2; /* derived */
+  --sop-color-step-connector:  #d5d8de; /* derived */
+
+  --sop-color-text-primary:    #14161c; /* derived */
+  --sop-color-text-secondary:  #4a4f5b; /* derived */
+  --sop-color-text-muted:      #666d79; /* derived: was #868c98 = 3.38:1 on white, under AA for 11px labels. Now 5.21:1. */
+  --sop-color-text-inverse:    #f5f6f8; /* derived */
+
+  --sop-color-brand:           #6d28d9; /* derived: darkened for 4.5:1+ contrast on white */
+  --sop-color-brand-subtle:    #efe9fc; /* derived */
+
+  --sop-color-ink:              #14161c; /* derived */
+  --sop-color-ink-soft:         #767c8a; /* derived: was #9096a3 = 2.97:1 on white, under the 3:1 mark floor. Now 4.18:1. */
+  --sop-color-ink-faint:        #858b98; /* derived: was #c7cad2 = 1.64:1 on white — invisible as a mark. Now 3.25:1 on white / 3.04:1 on canvas. */
+
+  --sop-color-good:             #1a7a42; /* derived: darkened for AA on white */
+  --sop-color-good-bg:          #e7f5eb;
+  --sop-color-bad:              #b3261e; /* derived: darkened for AA on white */
+  --sop-color-bad-bg:           #fbeae8;
+  --sop-color-warn:             #966107; /* derived: darkened for AA on white */
+  --sop-color-warn-bg:          #fdf2dc;
+  --sop-color-info:             #1d4ed8; /* derived */
+  --sop-color-info-bg:          #e9eefc;
+
+  --sop-color-chart-grid:       #e8e9ec; /* derived */
+  --sop-color-chart-axis:       #b8bcc6; /* derived */
+
+  --sop-cone-band-fill:         rgba(20, 22, 28, 0.05); /* derived: light-theme equivalent tint */
+
+  --sop-shadow-sm:               0 1px 2px rgba(20, 22, 28, 0.06); /* derived */
+  --sop-shadow-focus-ring:       0 0 0 3px var(--sop-color-brand-subtle);
+}
+
+/* =============================================================================
+   UTILITY CLASSES — the minimum set every mockup needs
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+}
+
+/* --- panel: generic card/section container (chart cards, list cards —
+   every module in the screenshots is one of these) ---------------------- */
+.panel {
+  background: var(--sop-color-surface);
+  border: var(--sop-border-width) solid var(--sop-color-border);
+  border-radius: var(--sop-radius-md);
+  padding: var(--sop-space-5);
+}
+.panel + .panel { margin-top: var(--sop-space-4); }
+
+/* --- modal: the provenance drill-down surface (from D) ------------------ */
+.modal-scrim {
+  background: var(--sop-color-scrim); /* from D: dimmed page behind the "How this number was produced" modal */
+}
+.modal {
+  background: var(--sop-color-surface-raised);
+  border: var(--sop-border-width) solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg);
+  box-shadow: var(--sop-shadow-sm);
+  padding: var(--sop-space-6);
+}
+.step-connector {
+  border-left: var(--sop-border-width) solid var(--sop-color-step-connector); /* from D: connector between numbered pipeline steps */
+}
+
+/* --- section-header: tracked-uppercase kicker + bold title, e.g.
+   "ACT 4 · THE COMPOUNDING MOAT" / "TREND SNAPSHOT" ---------------------- */
+.section-header { margin-bottom: var(--sop-space-4); }
+.section-header .kicker {
+  display: block;
+  font-size: var(--sop-text-label);
+  font-weight: var(--sop-weight-semibold);
+  letter-spacing: var(--sop-label-tracking);
+  text-transform: uppercase;
+  color: var(--sop-color-text-muted);
+  margin-bottom: var(--sop-space-1);
+}
+.section-header .title {
+  font-size: var(--sop-text-h2);
+  font-weight: var(--sop-weight-semibold);
+  color: var(--sop-color-text-primary);
+}
+
+/* --- label-muted: standalone micro-label, e.g. a KPI tile's field name -- */
+.label-muted {
+  font-size: var(--sop-text-label);
+  font-weight: var(--sop-weight-semibold);
+  letter-spacing: var(--sop-label-tracking);
+  text-transform: uppercase;
+  color: var(--sop-color-text-muted);
+}
+
+/* --- tile: KPI tile anatomy (screenshot B/D) — label row with an info
+   affordance, hero number, delta row with a directional glyph + a
+   comparison basis, and a "Why?" drill-in link. ------------------------- */
+.tile {
+  background: var(--sop-color-surface);
+  border: var(--sop-border-width) solid var(--sop-color-border);
+  border-radius: var(--sop-tile-radius);
+  padding: var(--sop-tile-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sop-tile-gap);
+}
+.tile.is-focused {
+  border-color: var(--sop-color-brand); /* from B: the one purple-outlined "focused" Revenue tile */
+  box-shadow: var(--sop-shadow-focus-ring); /* crisp 0-blur ring, not the source's blurred glow */
+}
+/* Note: .tile__label below duplicates .label-muted's declarations rather
+   than composing it, since plain CSS has no composition mechanism (no
+   build step, per the "no JS" constraint) — apply .label-muted directly
+   for the shared muted-label look on a non-tile element. */
+.tile__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sop-space-1);
+}
+.tile__label {
+  font-size: var(--sop-text-label);
+  font-weight: var(--sop-weight-semibold);
+  letter-spacing: var(--sop-label-tracking);
+  text-transform: uppercase;
+  color: var(--sop-color-text-muted);
+}
+.tile__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sop-tile-info-size);
+  height: var(--sop-tile-info-size);
+  border-radius: 50%;
+  border: 1px solid var(--sop-color-text-muted);
+  color: var(--sop-color-text-muted);
+  font-size: 10px;
+  line-height: 1;
+} /* from B/D: the small "ⓘ" info affordance beside every KPI-tile label */
+.tile__value {
+  font-size: var(--sop-num-lg);
+  font-weight: var(--sop-weight-bold);
+  color: var(--sop-color-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--sop-font-feature-tabular);
+}
+.tile__value .unit {
+  font-size: var(--sop-num-suffix-size);
+  font-weight: var(--sop-weight-medium);
+  color: var(--sop-color-text-secondary);
+}
+.tile__delta {
+  font-size: var(--sop-text-small);
+  font-weight: var(--sop-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.tile__delta-basis {
+  color: var(--sop-color-text-muted);
+  font-weight: var(--sop-weight-regular);
+} /* from B: "vs Apr 1 – Apr 27" comparison-basis text trailing the delta */
+.tile__why {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  display: inline-block;
+  margin-top: var(--sop-space-1);
+  font-size: var(--sop-text-small);
+  font-weight: var(--sop-weight-semibold);
+  color: var(--sop-color-info);
+  text-decoration: underline;
+  cursor: pointer;
+} /* appearance/background/border/padding reset added 2026-08-13 (mockup 4): the
+     class is meant for a <button> (keyboard-operable, semantic "why" action),
+     but had no UA-button reset — first real usage (mockup 4's tile row)
+     rendered it as a grey boxed button instead of a text link. */ /* from B/D: "Why?" / provenance drill-in link under the delta row */
+
+/* --- numeric alignment: apply to any <td>/<span> holding a figure ------ */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--sop-font-feature-tabular);
+  text-align: right;
+  white-space: nowrap;
+}
+.num--money { font-size: var(--sop-num-md); font-weight: var(--sop-weight-bold); }
+.num--unit  { font-size: var(--sop-num-md); font-weight: var(--sop-weight-semibold); }
+.num .unit  { font-size: var(--sop-num-suffix-size); color: var(--sop-color-text-secondary); font-weight: var(--sop-weight-regular); }
+
+/* --- variance-positive / variance-negative -----------------------------
+   Color is never the only carrier: each class prepends a directional
+   glyph via ::before (▲ / ▼) so the sign survives grayscale print and
+   red-green color-vision deficiency; both hues are additionally tuned for
+   dark-surface contrast (see token comments in section 5).
+   ------------------------------------------------------------------- */
+.variance-positive,
+.variance-negative {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  font-weight: var(--sop-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.variance-positive { color: var(--sop-color-good); }
+.variance-positive::before { content: "\25B2"; font-size: 0.75em; } /* ▲ from B: up-arrow glyph beside green deltas */
+.variance-negative { color: var(--sop-color-bad); }
+.variance-negative::before { content: "\25BC"; font-size: 0.75em; } /* ▼ from B: down-arrow glyph beside red deltas */
+
+/* --- status: KPI-health dot, ALWAYS paired with text (section 13) ------ */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sop-space-2);
+} /* from B: "KPI HEALTH" list — dot + label, never a bare dot */
+.status-dot {
+  display: inline-block;
+  width: var(--sop-dot-size);
+  height: var(--sop-dot-size);
+  border-radius: 50%;
+  flex: none;
+}
+.status-dot--good { background: var(--sop-color-good); }
+.status-dot--warn { background: var(--sop-color-warn); }
+.status-dot--bad  { background: var(--sop-color-bad); }
+
+/* --- rail: narrative/story panel (section 14) --------------------------- */
+.rail {
+  max-width: var(--sop-rail-max-width);
+  color: var(--sop-color-text-secondary);
+  font-size: var(--sop-text-body);
+  line-height: 1.6;
+} /* from B/D: sits directly on canvas, no card border — distinct from the data grid by measure + typography, not a box */
+.rail a {
+  color: var(--sop-color-info);
+  text-decoration: underline;
+} /* from B/D: inline links inside rail body copy ("Market Agent", "raw data", "pipeline") */
+.rail__callout {
+  background: var(--sop-color-surface);
+  border-left: var(--sop-rail-callout-border-width) solid var(--sop-color-rail-accent);
+  border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-4);
+  margin-top: var(--sop-space-4);
+} /* from D's "Core tenet" box and B's boxed aside — the one bordered element inside an otherwise borderless rail */
+
+/* --- table: reconciliation / plan grids --------------------------------- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--sop-text-small);
+}
+.table th,
+.table td {
+  padding: var(--sop-space-2) var(--sop-space-3);
+  height: var(--sop-table-row-height);
+  border-bottom: var(--sop-border-width) solid var(--sop-color-border);
+  text-align: left;
+}
+.table th {
+  background: var(--sop-table-header-bg);
+  font-size: var(--sop-text-label);
+  font-weight: var(--sop-weight-semibold);
+  letter-spacing: var(--sop-label-tracking);
+  text-transform: uppercase;
+  color: var(--sop-color-text-muted);
+}
+.table td.num { font-variant-numeric: tabular-nums; font-feature-settings: var(--sop-font-feature-tabular); text-align: right; }
+.table tbody tr:nth-child(even) td { background: var(--sop-table-stripe-bg); }
+.table tfoot td {
+  border-top: var(--sop-border-width) solid var(--sop-color-border-strong);
+  border-bottom: none;
+  font-weight: var(--sop-weight-bold);
+}
+
+/* =============================================================================
+   IBCS MARK UTILITIES — actual (solid) / plan (outline) / forecast
+   (hatched) / previous year (light solid)
+   Required by IBCS notation discipline (task brief), not present in the
+   source screenshots (none contain scenario-typed bars). Applied to any
+   bar/legend-swatch element, e.g. <span class="mark mark-actual"></span>
+   next to a chart legend entry, or on a chart's own <rect>/<div> bar.
+   ========================================================================= */
+.mark {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border-radius: 2px;
+  vertical-align: -0.15em;
+}
+.mark-actual {
+  /* actual = solid ink fill */
+  background: var(--sop-color-chart-actual);
+}
+.mark-plan {
+  /* plan/budget = outline only, no fill, so it never competes visually with actual */
+  background: transparent;
+  border: 2px solid var(--sop-color-chart-plan);
+}
+.mark-forecast {
+  /* forecast = hatched + lighter ink, pure CSS diagonal hatch (no image/SVG needed) */
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sop-color-chart-forecast) 0,
+    var(--sop-color-chart-forecast) 1.5px,
+    transparent 1.5px,
+    transparent 5px
+  );
+  border: 1px solid var(--sop-color-chart-forecast);
+}
+.mark-prior-year {
+  /* previous year = light solid fill — faintest ink, no hatch, no outline-only treatment, so it reads as "present but receded" next to actual */
+  background: var(--sop-color-chart-prior-year);
+}
+
+/* =============================================================================
+   CONFIDENCE LINE UTILITIES — from A's TRANSFER CONFIDENCE legend
+   Apply to a legend swatch (<span class="conf-line conf-line--high">) or,
+   for chart strokes, read the --sop-confidence-weight-* / --sop-cone-*
+   custom properties directly onto an SVG <path>/<line> stroke-width and
+   stroke-dasharray (plain CSS var() works on SVG presentation attributes
+   too).
+   ========================================================================= */
+.conf-line {
+  display: inline-block;
+  width: 2em;
+  border-top-style: solid;
+  border-top-color: var(--sop-color-ink-soft);
+  vertical-align: middle;
+}
+.conf-line--high    { border-top-width: var(--sop-confidence-weight-high); }
+.conf-line--medium  { border-top-width: var(--sop-confidence-weight-medium); }
+.conf-line--low     { border-top-width: var(--sop-confidence-weight-low); }
+.conf-line--verylow {
+  border-top-width: var(--sop-confidence-weight-verylow);
+  border-top-style: dashed;
+} /* from A: thickness = confidence tier, dashed = experimental/very-low */
+
+/* --- forecast-cone marks: P50 median + P10/P90 band, reusing the
+   confidence scale above (see section 7 token comments) ------------------ */
+.cone-p50 {
+  stroke-width: var(--sop-cone-p50-weight);
+  stroke-dasharray: none;
+}
+.cone-band {
+  stroke-width: var(--sop-cone-band-weight);
+  stroke-dasharray: var(--sop-cone-band-dasharray);
+  fill: var(--sop-cone-band-fill);
+}
+
+/* ===================== MERGED MOCKUP STYLES ===================== */
+
+/* ===== 01-layout-shell ===== */
+
+/* =============================================================================
+   01-layout-shell.html — MOCKUP 1 of 5 (SCOPE.md §9)
+   Scope of this mockup: the SHELL — page skeleton, headline band, small-multiples
+   grid, narrative rail, table collapse. Chart encoding is deliberately minimal;
+   mockup 2 (scenario comparison) is where the charts get their real treatment.
+   Every number comes from mockups/data.js, generated by the engine.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- page frame ----------------------------------------------------------- */
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+.topbar {
+  display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0;
+  border-bottom: 1px solid var(--sop-color-border);
+}
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+
+/* mode switcher — three lenses on one canvas, no navigation (SCOPE §6b) */
+.modes { display: flex; gap: 2px; background: var(--sop-color-surface-sunken);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 2px; }
+.modes__btn {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: var(--sop-color-text-secondary); font: inherit; font-size: var(--sop-text-small);
+  padding: 6px 14px; border-radius: calc(var(--sop-radius-md) - 2px);
+}
+.modes__btn[aria-selected="true"] { background: var(--sop-color-brand-subtle); color: var(--sop-color-text-primary); }
+.modes__btn:focus-visible { outline: 2px solid var(--sop-color-brand); outline-offset: 1px; }
+
+.iconbtn {
+  appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px;
+}
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- headline band — the 5-second read ------------------------------------ */
+.headline {
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--sop-space-5); align-items: stretch;
+  padding: var(--sop-space-5) 0 var(--sop-space-4);
+}
+.verdict { min-width: 0; }
+.verdict__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; }
+.verdict__line { font-size: var(--sop-text-h1); font-weight: 600; letter-spacing: -0.02em;
+  margin: var(--sop-space-2) 0 var(--sop-space-2); line-height: 1.2; }
+.verdict__because { color: var(--sop-color-text-secondary); max-width: 62ch; margin: 0; }
+
+.constraint {
+  border: 1px solid var(--sop-color-border); border-left: 3px solid var(--sop-color-warn);
+  background: var(--sop-color-surface); border-radius: var(--sop-radius-md);
+  padding: var(--sop-space-4); display: flex; flex-direction: column; justify-content: center;
+}
+.constraint__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; }
+.constraint__what { font-size: var(--sop-text-h2); font-weight: 600; margin: var(--sop-space-2) 0 4px; }
+.constraint__detail { color: var(--sop-color-text-secondary); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- stat tiles ----------------------------------------------------------- */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sop-space-4);
+  padding-bottom: var(--sop-space-5); }
+.tile { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-md); padding: var(--sop-space-4); min-width: 0; }
+.tile__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px; }
+.tile__value { font-size: var(--sop-text-display); font-weight: 600; letter-spacing: -0.02em;
+  margin-top: var(--sop-space-2); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.tile__foot { margin-top: 6px; font-size: var(--sop-text-small); color: var(--sop-color-text-secondary);
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad  { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+.basis { color: var(--sop-color-text-muted); }
+
+/* "why?" affordance — the provenance modal is mockup 3, this is the hook for it */
+.why {
+  appearance: none; background: transparent; border: 0; padding: 0; cursor: help;
+  color: var(--sop-color-info); font: inherit; font-size: var(--sop-text-label);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* --- main + rail ---------------------------------------------------------- */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5); align-items: start; }
+
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3); margin-bottom: var(--sop-space-2); }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* small-multiples grid: rows = metrics, columns = scenarios, shared y per row */
+.sm { display: grid; grid-template-columns: 168px repeat(3, minmax(0, 1fr)); gap: 0; }
+.sm__colhead {
+  padding: var(--sop-space-3) var(--sop-space-3) var(--sop-space-2);
+  border-bottom: 1px solid var(--sop-color-border-strong);
+  display: flex; align-items: center; gap: 8px;
+}
+.sm__colhead-name { font-size: var(--sop-text-small); font-weight: 600; }
+.sm__colhead-sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  font-variant-numeric: tabular-nums; margin-left: auto; }
+.sm__corner { border-bottom: 1px solid var(--sop-color-border-strong); }
+
+.sm__rowhead {
+  padding: var(--sop-space-4) var(--sop-space-3) var(--sop-space-4) 0;
+  border-bottom: 1px solid var(--sop-color-border);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.sm__rowhead-name { font-size: var(--sop-text-small); font-weight: 600; }
+.sm__rowhead-unit { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.sm__rowhead-scale { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+.sm__cell { padding: var(--sop-space-3); border-bottom: 1px solid var(--sop-color-border);
+  border-left: 1px solid var(--sop-color-border); min-width: 0; }
+.sm__cell svg { display: block; width: 100%; height: auto; }
+
+/* chart primitives */
+.grid-line { stroke: var(--sop-color-chart-grid); stroke-width: 1; }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line  { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.mark-hit  { fill: transparent; cursor: pointer; }
+
+/* legend — identity is never colour alone (SCOPE §6b: pattern, not hue) */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+/* --- narrative rail ------------------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad  { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+/* --- table collapse (design rule 13) -------------------------------------- */
+.tablewrap { margin-top: var(--sop-space-5); }
+.tablewrap[hidden] { display: none; }
+table { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small);
+  font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 0 var(--sop-space-3); height: var(--sop-table-row-height);
+  border-bottom: 1px solid var(--sop-color-border); }
+th:first-child, td:first-child { text-align: left; }
+thead th { background: var(--sop-table-header-bg); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+
+/* --- tooltip -------------------------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 168px; max-width: 260px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+.tip__row { display: flex; justify-content: space-between; gap: var(--sop-space-4);
+  color: var(--sop-color-text-secondary); font-variant-numeric: tabular-nums; }
+.tip__row b { color: var(--sop-color-text-primary); font-weight: 600; }
+.tip__foot { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--sop-color-border);
+  color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+
+/* --- footer --------------------------------------------------------------- */
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  .headline { grid-template-columns: minmax(0, 1fr); }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ===== 02-scenario-comparison ===== */
+
+/* =============================================================================
+   02-scenario-comparison.html — MOCKUP 2 of 5 (SCOPE.md §9)
+
+   What this mockup is for: comparing scenarios STRUCTURALLY. Mockup 1 answered
+   "what happens over the 12 months"; this one answers "which plan, and what does
+   choosing it cost me".
+
+   Grammar is prescribed by SCOPE §8b, not chosen here:
+     - structural comparison  -> HORIZONTAL bars (vertical columns are reserved
+       for time series, so nothing here is a column chart)
+     - KPI vs reference       -> BULLET graph
+     - bottleneck load        -> GRADED BANDS (safe/strained/critical), never a
+       binary over-100% flag
+     - every comparison shows VARIANCE vs BASE, not just levels
+     - colour encodes variance only; scenario identity is fill pattern
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome --------------------------------------------------------------- */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- preset row (SCOPE §3: four anchor presets ship as buttons) ----------- */
+.presets { display: flex; gap: var(--sop-space-3); align-items: stretch;
+  padding: var(--sop-space-5) 0 var(--sop-space-4); flex-wrap: wrap; }
+.preset {
+  appearance: none; text-align: left; cursor: pointer; font: inherit;
+  background: var(--sop-color-surface); color: var(--sop-color-text-primary);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md);
+  padding: var(--sop-space-3) var(--sop-space-4); min-width: 208px; flex: 1 1 208px;
+}
+.preset[aria-pressed="true"] { border-color: var(--sop-color-brand); background: var(--sop-color-brand-subtle); }
+.preset[disabled] { cursor: not-allowed; opacity: 0.55; }
+.preset__id { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; display: flex; gap: 6px; align-items: center; }
+.preset__name { font-weight: 600; margin: 3px 0 2px; }
+.preset__q { color: var(--sop-color-text-secondary); font-size: var(--sop-text-small); margin: 0; }
+.tag { font-size: var(--sop-text-label); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-pill); padding: 0 7px; color: var(--sop-color-text-muted); }
+
+/* --- panels --------------------------------------------------------------- */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5); align-items: start; }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- structural comparison: label | bars | variance ----------------------- */
+.cmp { display: grid; grid-template-columns: 168px minmax(0, 1fr) 210px; gap: 0 var(--sop-space-4); }
+.cmp__colhead { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: var(--sop-space-2);
+  border-bottom: 1px solid var(--sop-color-border-strong); }
+.cmp__metric { padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border);
+  display: flex; flex-direction: column; justify-content: center; }
+.cmp__metric-name { font-size: var(--sop-text-small); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.cmp__metric-unit { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.cmp__bars, .cmp__var { padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); min-width: 0; }
+.cmp__bars svg, .cmp__var svg { display: block; width: 100%; height: auto; }
+
+.bar-label { fill: var(--sop-color-text-secondary); font-size: 10px; font-family: var(--sop-font-sans); }
+.bar-value { fill: var(--sop-color-text-primary); font-size: 10px; font-weight: 600;
+  font-family: var(--sop-font-sans); }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.mark-hit { fill: transparent; cursor: pointer; }
+
+/* --- bullet graphs -------------------------------------------------------- */
+.bullets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.bullet { min-width: 0; }
+.bullet__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sop-space-3); }
+.bullet__name { font-size: var(--sop-text-small); font-weight: 600; }
+.bullet__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+.bullet svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+
+.bandkey { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-4);
+  padding-top: var(--sop-space-3); border-top: 1px solid var(--sop-color-border);
+  font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.bandkey__item { display: flex; align-items: center; gap: 7px; }
+.bandkey__swatch { width: 20px; height: 11px; display: inline-block; border-radius: 2px; }
+
+/* --- legend --------------------------------------------------------------- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+
+.why { appearance: none; background: transparent; border: 0; padding: 0; cursor: help;
+  color: var(--sop-color-info); font: inherit; font-size: var(--sop-text-label);
+  text-decoration: underline; text-underline-offset: 2px; }
+
+/* --- rail ----------------------------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+/* --- table (design rule 13) ---------------------------------------------- */
+.tablewrap[hidden] { display: none; }
+table { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 0 var(--sop-space-3); height: var(--sop-table-row-height);
+  border-bottom: 1px solid var(--sop-color-border); }
+th:first-child, td:first-child { text-align: left; }
+thead th { background: var(--sop-table-header-bg); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+
+/* --- tooltip -------------------------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+.tip__row { display: flex; justify-content: space-between; gap: var(--sop-space-4);
+  color: var(--sop-color-text-secondary); font-variant-numeric: tabular-nums; }
+.tip__row b { color: var(--sop-color-text-primary); font-weight: 600; }
+.tip__foot { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--sop-color-border);
+  color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  .bullets { grid-template-columns: minmax(0, 1fr); }
+  .cmp { grid-template-columns: 132px minmax(0, 1fr); }
+  .cmp__var, .cmp__colhead--var { display: none; }
+}
+
+/* ===== 03-levers-drilldown ===== */
+
+/* =============================================================================
+   03-levers-drilldown.html — MOCKUP 3 of 5 (SCOPE.md §9)
+
+   What this mockup is for: the lever sandbox (SCOPE §4) and "click any number,
+   see how it was made" — the 5-step provenance modal, SCOPE §6b's centrepiece.
+
+   Two things this mockup deliberately does NOT do, and says so on screen:
+   - Levers do not recompute anything live. SCOPE §2 row 7 requires client-side
+     recompute for the real build, but that is an IMPLEMENTATION requirement —
+     this is still a mockup (SCOPE §9's "Implementation | not started. Do not
+     start it.") and there is no JS port of the engine yet (open question in
+     HANDOFF-sop-revamp.md). A lever that visually drags but changes nothing
+     downstream would be a lie, so every lever renders disabled with a note,
+     the same "not wired yet" honesty as mockup 2's disabled S3 Invest preset.
+   - The modal shows 5 numbered steps (Demand, Capacity, Rationing, Supply,
+     Financials) per tokens.css's own `.step-connector` comment ("connector
+     between the 5 numbered provenance steps"). KPI is a closing tie-back
+     line under step 5, not a 6th numbered step — SCOPE's "Demand → Capacity →
+     Rationing → Supply → Financials → KPI" reads as 5 derivation steps
+     landing on one headline number.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome (matches mockups 1+2) ------------------------------------------ */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- scenario tabs ---------------------------------------------------------- */
+.scenariotabs { display: flex; gap: var(--sop-space-2); padding: var(--sop-space-5) 0 var(--sop-space-4); }
+.scenariotab { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small); font-weight: 600;
+  background: var(--sop-color-surface); color: var(--sop-color-text-secondary);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-pill); padding: 7px 16px; }
+.scenariotab[aria-pressed="true"] { border-color: var(--sop-color-brand); background: var(--sop-color-brand-subtle);
+  color: var(--sop-color-text-primary); }
+
+/* --- panels (matches mockups 1+2) ------------------------------------------ */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5); align-items: start; }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- levers panel ------------------------------------------------------------ */
+.leverpanel__banner { display: flex; align-items: center; gap: 8px; background: var(--sop-color-warn-bg);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-3) var(--sop-space-4); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); margin-bottom: var(--sop-space-4); }
+.leverpanel__banner b { color: var(--sop-color-text-primary); }
+.levergroups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.levergroup__title { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 var(--sop-space-3); padding-bottom: var(--sop-space-2);
+  border-bottom: 1px solid var(--sop-color-border-strong); }
+.lever { margin-bottom: var(--sop-space-4); }
+.lever:last-child { margin-bottom: 0; }
+.lever__row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sop-space-3); }
+.lever__label { font-size: var(--sop-text-small); font-weight: 600; }
+.lever__val { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums; color: var(--sop-color-text-secondary); }
+.lever__range { width: 100%; margin-top: 6px; accent-color: var(--sop-color-text-muted); cursor: not-allowed; opacity: 0.7; }
+.lever__range:disabled { cursor: not-allowed; }
+.advanced { margin-top: var(--sop-space-5); border-top: 1px solid var(--sop-color-border); padding-top: var(--sop-space-4); }
+.advanced > summary { cursor: pointer; font-size: var(--sop-text-small); font-weight: 600;
+  color: var(--sop-color-text-secondary); list-style: none; display: flex; align-items: center; gap: 6px; }
+.advanced > summary::-webkit-details-marker { display: none; }
+.advanced > summary::before { content: "▸"; display: inline-block; transition: transform 100ms linear; }
+.advanced[open] > summary::before { transform: rotate(90deg); }
+.advanced__body { padding-top: var(--sop-space-4); }
+
+/* --- drill-down grid --------------------------------------------------------- */
+.dgrid { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small); font-variant-numeric: tabular-nums; }
+.dgrid th, .dgrid td { text-align: center; padding: 0; height: 34px; border-bottom: 1px solid var(--sop-color-border); }
+.dgrid th:first-child, .dgrid td:first-child { text-align: left; padding-left: var(--sop-space-2); }
+.dgrid thead th { background: var(--sop-table-header-bg); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+.dgrid tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+.dgrid td .famname { font-weight: 600; }
+.dgrid td .famsub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label); display: block; }
+.cell { appearance: none; background: transparent; border: 0; cursor: pointer; font: inherit;
+  font-variant-numeric: tabular-nums; color: var(--sop-color-text-primary); width: 100%; height: 34px; }
+.cell:hover, .cell:focus-visible { background: var(--sop-color-surface-sunken); outline: 1px solid var(--sop-color-border-strong); outline-offset: -1px; }
+.cell--unmet { background: var(--sop-color-bad-bg); }
+.cell--unmet:hover { background: var(--sop-color-bad-bg); filter: brightness(1.3); }
+
+/* --- legend ------------------------------------------------------------------ */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 14px; height: 14px; display: inline-block; border-radius: 3px; }
+
+/* --- rail (matches mockups 1+2) --------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+/* --- tooltip (matches mockup 2) --------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+.tip__row { display: flex; justify-content: space-between; gap: var(--sop-space-4);
+  color: var(--sop-color-text-secondary); font-variant-numeric: tabular-nums; }
+.tip__row b { color: var(--sop-color-text-primary); font-weight: 600; }
+.tip__foot { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--sop-color-border);
+  color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+
+/* --- provenance modal: layout on top of tokens.css's .modal/.modal-scrim/
+   .step-connector base classes (colors/radius/shadow come from there) ------- */
+.modal-scrim { position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: flex-start; justify-content: center; overflow-y: auto; padding: var(--sop-space-8) var(--sop-space-4); }
+.modal-scrim[data-open="1"] { display: flex; }
+.modal { position: relative; width: 100%; max-width: 720px; margin: auto 0; }
+.modal__close { position: absolute; top: var(--sop-space-4); right: var(--sop-space-4); appearance: none;
+  cursor: pointer; background: transparent; border: 1px solid var(--sop-color-border); border-radius: 50%;
+  width: 28px; height: 28px; color: var(--sop-color-text-secondary); font-size: 15px; line-height: 1; }
+.modal__close:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+.modal__eyebrow { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.modal__title { font-size: var(--sop-text-h1); font-weight: 700; margin: 0 0 var(--sop-space-5);
+  padding-right: 40px; }
+.step { display: flex; gap: var(--sop-space-4); }
+.step__rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.step__num { width: 26px; height: 26px; border-radius: 50%; background: var(--sop-color-surface-sunken);
+  border: 1px solid var(--sop-color-border-strong); display: flex; align-items: center; justify-content: center;
+  font-size: var(--sop-text-small); font-weight: 700; flex: none; }
+.step__num--live { border-color: var(--sop-color-brand); color: var(--sop-color-brand); }
+.step__num--skip { color: var(--sop-color-text-muted); }
+.step:last-of-type .step-connector { display: none; }
+.step-connector { flex: 1; min-height: var(--sop-space-4); width: 0; margin: 2px 0; }
+.step__body { padding-bottom: var(--sop-space-5); flex: 1; min-width: 0; }
+.step__title { font-size: var(--sop-text-body); font-weight: 600; margin: 0 0 4px; }
+.step__formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: 6px 0; line-height: 1.6;
+  overflow-x: auto; white-space: normal; word-break: break-word; }
+.step__note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: 4px 0 0; }
+.step__subrow { font-size: var(--sop-text-label); color: var(--sop-color-text-muted); margin-top: 4px; }
+.kpi-tieback { margin-top: var(--sop-space-2); border-radius: var(--sop-radius-sm);
+  border-left: 3px solid var(--sop-color-brand); background: var(--sop-color-brand-subtle);
+  padding: var(--sop-space-3) var(--sop-space-4); }
+.kpi-tieback__label { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.kpi-tieback__val { font-size: var(--sop-text-h1); font-weight: 700; font-variant-numeric: tabular-nums; margin: 0; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  .levergroups { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .modal { max-width: 100%; }
+}
+
+/* ===== 04-kpi-tiles ===== */
+
+/* =============================================================================
+   04-kpi-tiles.html — MOCKUP 4 of 5 (SCOPE.md §9)
+
+   What this mockup is for: the KPI story in one screen — headline decision band,
+   then four panels that read live off the 3 locked scenarios (SCOPE §8b):
+   fill rate × 3 (bullet graphs), the bottleneck resource's monthly load, margin
+   at risk (Dryers, 3 months), upside value (Base → Upside). Drives to the same
+   proven rollups + 5-step provenance modal mockup 3 built.
+
+   Redesigned 2026-08-13 after Lavi's rejection of the first hero-tile grid
+   ("not very interactive, looks plain AI slop") — presentation rebuilt around
+   live panel notes, per-family hover sparklines, a rationing-month sequence
+   on the load curve, count-up deltas and a one-authored rise-in moment.
+   Kept sound: the data layer, rollup arithmetic, and 5-step modal.
+
+   Every "Why?" traces to real arithmetic, same discipline as mockup 3:
+   - Where a KPI IS one family/month's story (Margin at Risk's Dryers
+     shortfall), each contributing month is a button that opens the exact
+     same 5-step provenance modal mockup 3 built — copied verbatim, not
+     reinvented, per HANDOFF's explicit instruction to reuse it.
+   - Where a KPI is a genuine aggregate (a fill rate, a resource's 12-month
+     utilization curve, a base-vs-upside comparison), a new "rollup" modal
+     shows the real per-family or per-month numbers summing to the headline,
+     with cross-links into the 5-step modal wherever the rollup bottoms out
+     at one real family/month (e.g. the fill-rate-constrained rollup links
+     to Dryers' worst month; the bottleneck rollup links to the same cell).
+   All numbers are computed client-side from data.js at render time — nothing
+   below is a hardcoded figure, same as mockups 1–3.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome (matches mockups 1–3) ------------------------------------------ */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- panels (matches mockups 1–3) ------------------------------------------ */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5);
+  align-items: start; padding-top: var(--sop-space-5); }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- tile grid: tokens.css supplies .tile itself, this file only lays out
+   the grid and adds the status row + click affordance on top of it ------- */
+.tilegrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sop-space-4); }
+.tile__context { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.tile[data-clickable] { cursor: default; } /* the tile itself isn't clickable — only .tile__why is, per tokens.css's own affordance */
+
+/* --- rail (matches mockups 1–3) --------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+/* --- rollup table: same numeric discipline as mockup 3's .dgrid, sized for
+   a modal instead of a full-width panel ---------------------------------- */
+.rolluptable { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small);
+  font-variant-numeric: tabular-nums; margin: var(--sop-space-3) 0; }
+.rolluptable th, .rolluptable td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--sop-color-border); }
+.rolluptable th:first-child, .rolluptable td:first-child { text-align: left; }
+.rolluptable thead th { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+.rolluptable tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+.rolluptable tr.is-total td { font-weight: 700; border-top: 1px solid var(--sop-color-border-strong); border-bottom: none; }
+.rolluptable tr.is-highlight td { background: var(--sop-color-bad-bg); }
+.rolluptable .rowbtn { appearance: none; background: transparent; border: 0; padding: 0; cursor: pointer;
+  font: inherit; font-variant-numeric: tabular-nums; color: var(--sop-color-info); text-decoration: underline; }
+.rollup-formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: var(--sop-space-3) 0; line-height: 1.6; }
+.rollup-note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: var(--sop-space-2) 0 0; }
+.rollup-link { appearance: none; background: transparent; border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-sm); padding: 6px 10px; margin-top: var(--sop-space-2);
+  font: inherit; font-size: var(--sop-text-small); color: var(--sop-color-info); cursor: pointer; }
+.rollup-link:hover { border-color: var(--sop-color-border-strong); }
+
+/* --- tooltip (matches mockup 2/3) ------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+
+/* --- modal: identical chrome to mockup 3, reused for both the 5-step
+   provenance drill-down AND the new rollups (same .modal/.modal-scrim) --- */
+.modal-scrim { position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: flex-start; justify-content: center; overflow-y: auto; padding: var(--sop-space-8) var(--sop-space-4); }
+.modal-scrim[data-open="1"] { display: flex; }
+.modal { position: relative; width: 100%; max-width: 720px; margin: auto 0; }
+.modal__close { position: absolute; top: var(--sop-space-4); right: var(--sop-space-4); appearance: none;
+  cursor: pointer; background: transparent; border: 1px solid var(--sop-color-border); border-radius: 50%;
+  width: 28px; height: 28px; color: var(--sop-color-text-secondary); font-size: 15px; line-height: 1; }
+.modal__close:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+.modal__eyebrow { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.modal__title { font-size: var(--sop-text-h1); font-weight: 700; margin: 0 0 var(--sop-space-5);
+  padding-right: 40px; }
+.step { display: flex; gap: var(--sop-space-4); }
+.step__rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.step__num { width: 26px; height: 26px; border-radius: 50%; background: var(--sop-color-surface-sunken);
+  border: 1px solid var(--sop-color-border-strong); display: flex; align-items: center; justify-content: center;
+  font-size: var(--sop-text-small); font-weight: 700; flex: none; }
+.step__num--live { border-color: var(--sop-color-brand); color: var(--sop-color-brand); }
+.step__num--skip { color: var(--sop-color-text-muted); }
+.step:last-of-type .step-connector { display: none; }
+.step-connector { flex: 1; min-height: var(--sop-space-4); width: 0; margin: 2px 0; }
+.step__body { padding-bottom: var(--sop-space-5); flex: 1; min-width: 0; }
+.step__title { font-size: var(--sop-text-body); font-weight: 600; margin: 0 0 4px; }
+.step__formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: 6px 0; line-height: 1.6;
+  overflow-x: auto; white-space: normal; word-break: break-word; }
+.step__note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: 4px 0 0; }
+.kpi-tieback { margin-top: var(--sop-space-2); border-radius: var(--sop-radius-sm);
+  border-left: 3px solid var(--sop-color-brand); background: var(--sop-color-brand-subtle);
+  padding: var(--sop-space-3) var(--sop-space-4); }
+.kpi-tieback__label { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.kpi-tieback__val { font-size: var(--sop-text-h1); font-weight: 700; font-variant-numeric: tabular-nums; margin: 0; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+}
+@media (max-width: 900px) {
+  .duo { grid-template-columns: 1fr; }
+  .fillrow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .fillrow { grid-template-columns: 1fr; }
+  .headline__top { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .modal { max-width: 100%; }
+}
+
+/* --- chart helpers (copied from mockup 02-scenario-comparison.html) -------- */
+.bar-label { fill: var(--sop-color-text-secondary); font-size: 10px; font-family: var(--sop-font-sans); }
+.bar-value { fill: var(--sop-color-text-primary); font-size: 10px; font-weight: 600;
+  font-family: var(--sop-font-sans); }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.mark-hit { fill: transparent; cursor: pointer; }
+
+/* --- bullet graphs -------------------------------------------------------- */
+.bullets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.bullet { min-width: 0; }
+.bullet__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sop-space-3); }
+.bullet__name { font-size: var(--sop-text-small); font-weight: 600; }
+.bullet__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+.bullet svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+
+.bandkey { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-4);
+  padding-top: var(--sop-space-3); border-top: 1px solid var(--sop-color-border);
+  font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.bandkey__item { display: flex; align-items: center; gap: 7px; }
+.bandkey__swatch { width: 20px; height: 11px; display: inline-block; border-radius: 2px; }
+
+/* --- legend --------------------------------------------------------------- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+
+/* --- mockup-4 chart panels (IBCS, SCOPE §8b) ------------------------------- */
+.fillrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.chartwrap { min-width: 0; cursor: pointer; }
+.chartwrap svg { display: block; width: 100%; height: auto; }
+.bullet.clickable { cursor: pointer; }
+.chartnote { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary);
+  margin: var(--sop-space-3) 0 0; line-height: 1.7; }
+
+/* --- headline band — the 5-second decision (SCOPE §8b) --------------------- */
+.panel--headline { padding: var(--sop-space-5) var(--sop-space-6); }
+.headline__top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sop-space-6); }
+.headline__kicker { display: block; font-size: var(--sop-text-label); text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--sop-color-text-muted); margin-bottom: 6px; }
+.headline__lede { font-size: var(--sop-text-body); line-height: 1.5; margin: 0; }
+.headline__lede strong { font-weight: 700; }
+.headline__trade { margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); line-height: 1.7; }
+
+/* --- live verdict notes (the panel note becomes the story, not a legend) --- */
+.panel__note b, .panel__note strong { color: var(--sop-color-text-primary); font-weight: var(--sop-weight-semibold); }
+.panel__note .delta { font-weight: var(--sop-weight-semibold); }
+.panel__note .delta--good { color: var(--sop-color-good); }
+.panel__note .delta--bad { color: var(--sop-color-bad); }
+.panel__note .delta--flat { color: var(--sop-color-text-muted); }
+
+/* --- number count-up: tabular numerals keep the grid from jittering while
+   the delta animates to its final figure on first view --------------------- */
+.num-anim { display: inline-block; font-variant-numeric: tabular-nums; font-feature-settings: var(--sop-font-feature-tabular); }
+
+/* --- explicit drill affordance: the whole panel already clicks; this link
+   says so and shows where it goes, instead of relying on an invisible
+   click-target + a tooltip nobody discovers -------------------------------- */
+.drill { display: inline-flex; align-items: center; gap: 6px; margin-top: var(--sop-space-2);
+  appearance: none; background: transparent; border: 0; padding: 0; cursor: pointer;
+  font-family: inherit; font-size: var(--sop-text-small); font-weight: var(--sop-weight-semibold);
+  color: var(--sop-color-info); }
+.drill .drill__arrow { transition: transform 120ms ease-out; }
+.drill:hover .drill__arrow { transform: translateX(3px); }
+
+/* --- load-curve flag chips: the rationing months rise out of the axis so
+   the sequence (3 months that actually cost shipped units) is scannable --- */
+.mflag { font-size: 9px; font-weight: var(--sop-weight-semibold); letter-spacing: 0.04em; }
+.mflag--ration { fill: var(--sop-color-bad); }
+.mflag--ration.track { fill: var(--sop-color-bad-bg); }
+.mflag--label { fill: var(--sop-color-text-secondary); font-weight: var(--sop-weight-regular); }
+
+/* --- fill-tile corner popover: a real 12-month sparkline per family appears
+   on hover — data already exists, so this is depth, not decoration ---------- */
+.fillpop { position: absolute; z-index: 60; pointer-events: none; opacity: 0; transition: opacity 110ms ease;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: var(--sop-space-3); width: 216px; }
+.fillpop[data-show="1"] { opacity: 1; }
+.fillpop__head { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: var(--sop-label-tracking);
+  color: var(--sop-color-text-muted); margin: 0 0 6px; font-weight: var(--sop-weight-semibold); }
+.fillpop svg { display: block; width: 100%; height: 34px; }
+.bullet { position: relative; }
+.bullet.clickable { cursor: pointer; }
+
+/* --- margin-bar entrance: the three bars rise from baseline in sequence on
+   first view — one authored moment, not scattered effects ------------------- */
+@keyframes riseIn {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.rise { transform-origin: bottom; animation: riseIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rise--1 { animation-delay: 60ms; }
+.rise--2 { animation-delay: 160ms; }
+.rise--3 { animation-delay: 260ms; }
+
+/* ===== 05-margin-waterfall ===== */
+
+/* =============================================================================
+   05-margin-waterfall.html — MOCKUP 5 of 5 (SCOPE.md §9)
+
+   What this mockup is for: the margin waterfall (SCOPE §8b chart grammar) — vertical bridge from Base to Realized. (DESIGN.md §2's candidate list,
+   read as a starting point per HANDOFF-sop-revamp.md, not gospel). Reuses
+   tokens.css's pre-built .tile anatomy verbatim — label row with info
+   affordance, hero number, delta row, "Why?" drill-in link — rather than
+   inventing new tile markup.
+
+   Six tiles: Fill Rate × 3 (Base/Upside/Constrained), Bottleneck Resource
+   Utilization, Upside Value Unlocked, Margin at Risk (Constrained). No
+   scenario tabs here — unlike mockups 1–3, the tile row's whole point is
+   showing all 3 scenarios at a glance with zero navigation (SCOPE §6b's
+   "three lenses on one canvas" pattern), so each tile names its own scenario.
+
+   Every "Why?" traces to real arithmetic, same discipline as mockup 3:
+   - Where a KPI IS one family/month's story (Margin at Risk's Dryers
+     shortfall), each contributing month is a button that opens the exact
+     same 5-step provenance modal mockup 3 built — copied verbatim, not
+     reinvented, per HANDOFF's explicit instruction to reuse it.
+   - Where a KPI is a genuine aggregate (a fill rate, a resource's 12-month
+     utilization curve, a base-vs-upside comparison), a new "rollup" modal
+     shows the real per-family or per-month numbers summing to the headline,
+     with cross-links into the 5-step modal wherever the rollup bottoms out
+     at one real family/month (e.g. the fill-rate-constrained rollup links
+     to Dryers' worst month; the bottleneck rollup links to the same cell).
+   All numbers are computed client-side from data.js at render time — nothing
+   below is a hardcoded figure, same as mockups 1–3.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome (matches mockups 1–3) ------------------------------------------ */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- panels (matches mockups 1–3) ------------------------------------------ */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5);
+  align-items: start; padding-top: var(--sop-space-5); }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- tile grid: tokens.css supplies .tile itself, this file only lays out
+   the grid and adds the status row + click affordance on top of it ------- */
+.tile__context { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.tile[data-clickable] { cursor: default; } /* the tile itself isn't clickable — only .tile__why is, per tokens.css's own affordance */
+
+/* --- rail (matches mockups 1–3) --------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+/* --- rollup table: same numeric discipline as mockup 3's .dgrid, sized for
+   a modal instead of a full-width panel ---------------------------------- */
+.rolluptable { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small);
+  font-variant-numeric: tabular-nums; margin: var(--sop-space-3) 0; }
+.rolluptable th, .rolluptable td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--sop-color-border); }
+.rolluptable th:first-child, .rolluptable td:first-child { text-align: left; }
+.rolluptable thead th { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+.rolluptable tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+.rolluptable tr.is-total td { font-weight: 700; border-top: 1px solid var(--sop-color-border-strong); border-bottom: none; }
+.rolluptable tr.is-highlight td { background: var(--sop-color-bad-bg); }
+.rolluptable .rowbtn { appearance: none; background: transparent; border: 0; padding: 0; cursor: pointer;
+  font: inherit; font-variant-numeric: tabular-nums; color: var(--sop-color-info); text-decoration: underline; }
+.rollup-formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: var(--sop-space-3) 0; line-height: 1.6; }
+.rollup-note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: var(--sop-space-2) 0 0; }
+.rollup-link { appearance: none; background: transparent; border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-sm); padding: 6px 10px; margin-top: var(--sop-space-2);
+  font: inherit; font-size: var(--sop-text-small); color: var(--sop-color-info); cursor: pointer; }
+.rollup-link:hover { border-color: var(--sop-color-border-strong); }
+
+/* --- tooltip (matches mockup 2/3) ------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+
+/* --- modal: identical chrome to mockup 3, reused for both the 5-step
+   provenance drill-down AND the new rollups (same .modal/.modal-scrim) --- */
+.modal-scrim { position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: flex-start; justify-content: center; overflow-y: auto; padding: var(--sop-space-8) var(--sop-space-4); }
+.modal-scrim[data-open="1"] { display: flex; }
+.modal { position: relative; width: 100%; max-width: 720px; margin: auto 0; }
+.modal__close { position: absolute; top: var(--sop-space-4); right: var(--sop-space-4); appearance: none;
+  cursor: pointer; background: transparent; border: 1px solid var(--sop-color-border); border-radius: 50%;
+  width: 28px; height: 28px; color: var(--sop-color-text-secondary); font-size: 15px; line-height: 1; }
+.modal__close:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+.modal__eyebrow { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.modal__title { font-size: var(--sop-text-h1); font-weight: 700; margin: 0 0 var(--sop-space-5);
+  padding-right: 40px; }
+.step { display: flex; gap: var(--sop-space-4); }
+.step__rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.step__num { width: 26px; height: 26px; border-radius: 50%; background: var(--sop-color-surface-sunken);
+  border: 1px solid var(--sop-color-border-strong); display: flex; align-items: center; justify-content: center;
+  font-size: var(--sop-text-small); font-weight: 700; flex: none; }
+.step__num--live { border-color: var(--sop-color-brand); color: var(--sop-color-brand); }
+.step__num--skip { color: var(--sop-color-text-muted); }
+.step:last-of-type .step-connector { display: none; }
+.step-connector { flex: 1; min-height: var(--sop-space-4); width: 0; margin: 2px 0; }
+.step__body { padding-bottom: var(--sop-space-5); flex: 1; min-width: 0; }
+.step__title { font-size: var(--sop-text-body); font-weight: 600; margin: 0 0 4px; }
+.step__formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: 6px 0; line-height: 1.6;
+  overflow-x: auto; white-space: normal; word-break: break-word; }
+.step__note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: 4px 0 0; }
+.kpi-tieback { margin-top: var(--sop-space-2); border-radius: var(--sop-radius-sm);
+  border-left: 3px solid var(--sop-color-brand); background: var(--sop-color-brand-subtle);
+  padding: var(--sop-space-3) var(--sop-space-4); }
+.kpi-tieback__label { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.kpi-tieback__val { font-size: var(--sop-text-h1); font-weight: 700; font-variant-numeric: tabular-nums; margin: 0; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+}
+@media (max-width: 900px) {
+}
+@media (max-width: 640px) {
+  .headline__top { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .modal { max-width: 100%; }
+}
+
+/* --- chart helpers (copied from mockup 02-scenario-comparison.html) -------- */
+.bar-label { fill: var(--sop-color-text-secondary); font-size: 10px; font-family: var(--sop-font-sans); }
+.bar-value { fill: var(--sop-color-text-primary); font-size: 10px; font-weight: 600;
+  font-family: var(--sop-font-sans); }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.mark-hit { fill: transparent; cursor: pointer; }
+
+.bandkey { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-4);
+  padding-top: var(--sop-space-3); border-top: 1px solid var(--sop-color-border);
+  font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.bandkey__item { display: flex; align-items: center; gap: 7px; }
+.bandkey__swatch { width: 20px; height: 11px; display: inline-block; border-radius: 2px; }
+
+/* --- legend --------------------------------------------------------------- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+
+.chartnote { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary);
+  margin: var(--sop-space-3) 0 0; line-height: 1.7; }
+
+/* --- headline band — the 5-second decision (SCOPE §8b) --------------------- */
+.panel--headline { padding: var(--sop-space-5) var(--sop-space-6); }
+.headline__top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sop-space-6); }
+.headline__kicker { display: block; font-size: var(--sop-text-label); text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--sop-color-text-muted); margin-bottom: 6px; }
+.headline__lede { font-size: var(--sop-text-body); line-height: 1.5; margin: 0; }
+.headline__lede strong { font-weight: 700; }
+.headline__trade { margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); line-height: 1.7; }
+
+/* ============================ MOCKUP 5 WATERFALL ========================= */
+/* Vertical margin waterfall (SCOPE §8b): base → +upside lift → −constrained
+   penalty → realized. IBCS notation: ink = actual; good/bad hues carry the
+   deltas; variance always shows a ▲/▼ glyph, never hue alone. */
+.wf { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--sop-space-5); align-items: start; }
+.wf__chart { background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-lg); padding: var(--sop-space-5) var(--sop-space-5) var(--sop-space-3); }
+.wf__svg { width: 100%; height: auto; display: block; }
+.wf__axislabel { fill: var(--sop-color-text-muted); font: 11px var(--sop-font-sans); letter-spacing: 0.02em; }
+.wf__steplabel { fill: var(--sop-color-text-secondary); font: 12px var(--sop-font-sans); }
+.wf__stepval { fill: var(--sop-color-text-primary); font: 700 12px var(--sop-font-sans); }
+.wf__delta { fill: var(--sop-color-text-primary); font: 700 12px var(--sop-font-sans); }
+.wf__delta--bad { fill: var(--sop-color-text-primary); font: 700 12px var(--sop-font-sans); }
+.wf__label-on-bar { fill: #ffffff; font: 700 12px var(--sop-font-sans); paint-order: stroke; stroke: rgba(0,0,0,0.35); stroke-width: 3px; stroke-linejoin: round; }
+.wf__label-on-light { fill: #14161c; font: 700 12px var(--sop-font-sans); }
+.wf__label-on-badge { fill: var(--sop-color-text-primary); font: 700 12px var(--sop-font-sans); }
+.wf__badge { fill: var(--sop-color-surface-raised); stroke: var(--sop-color-border); }
+.wf__connector { stroke: var(--sop-color-border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+.wf__baseline { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.wf__hdr { display:flex; align-items:baseline; justify-content:space-between; gap: var(--sop-space-3); }
+.wf__hdr .panel__title { font-size: var(--sop-text-h2); }
+.wf__kicker { color: var(--sop-color-text-muted); font: 11px var(--sop-font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
+.wf__lede { font: 600 var(--sop-text-body) var(--sop-font-sans); color: var(--sop-color-text-primary); margin: 2px 0 0; }
+.wf__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+.wf__table { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small); }
+.wf__table th, .wf__table td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--sop-color-border); }
+.wf__table th:first-child, .wf__table td:first-child { text-align: left; }
+.wf__table th { color: var(--sop-color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; font-weight: 600; }
+.wf__table td { font-variant-numeric: tabular-nums; }
+.wf__table tbody tr:last-child td { border-bottom: 0; }
+.wf__table .is-total td { font-weight: 600; border-top: 2px solid var(--sop-color-border-strong); color: var(--sop-color-text-primary); }
+.wf__val-good { color: var(--sop-color-good); }
+.wf__val-bad { color: var(--sop-color-bad); }
+.wf__cellclick { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-style: dotted; }
+.wf__cellclick:hover { color: var(--sop-color-info); }
+.wf__legend { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-2); }
+.wf__legend span { display: inline-flex; align-items: center; gap: 6px; font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.wf__swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.wf__swatch--base { background: var(--sop-color-ink); }
+.wf__swatch--up { background: var(--sop-color-good); }
+.wf__swatch--pen { background: var(--sop-color-bad); }
+.wf__swatch--real { background: var(--sop-color-info); }
+

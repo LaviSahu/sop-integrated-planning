@@ -1,0 +1,204 @@
+<!-- SVG defs: forecast/constrained hatch. Scenario identity is PATTERN, not hue. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="5" height="5" fill="none"></rect>
+      <line x1="0" y1="0" x2="0" y2="5" stroke="var(--sop-color-ink-soft)" stroke-width="2.2"></line>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <header class="topbar">
+    <div>
+      <h1 class="topbar__title" id="co">S&amp;OP Cockpit</h1>
+      <div class="topbar__sub" id="cycle">Annual plan · 12 monthly buckets</div>
+    </div>
+    <div class="topbar__spacer"></div>
+    <button class="iconbtn" id="tabletoggle" aria-expanded="false">Show table</button>
+    <button class="iconbtn" id="themetoggle">Light</button>
+  </header>
+
+  <!-- 5-second read: what to do, and what stops us -->
+  <section class="panel panel--headline" id="headline"></section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <div class="main">
+
+    <div class="stack">
+
+      <!-- Scenario presets (SCOPE §3) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Scenarios</h2>
+          <p class="panel__note">Four anchor presets; a user-built scenario is a named delta from Base (SCOPE §3).</p>
+        </div>
+        <div class="presets" id="presets" aria-label="Scenario presets"></div>
+      </section>
+
+      <!-- Small multiples: demand vs shipped, revenue, bottleneck load (m1) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Demand vs shipped — shared scale</h2>
+          <p class="panel__note">Rows are metrics, columns are scenarios. Each row shares one y-scale across all three columns, so heights are directly comparable.</p>
+        </div>
+        <div class="sm" id="sm"></div>
+        <div class="legend" id="legend"></div>
+
+        <div class="tablewrap" id="tablewrap" hidden>
+          <table id="table"></table>
+        </div>
+      </section>
+
+      <!-- Structural comparison + bullets + families (m2) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Structural comparison</h2>
+          <p class="panel__note">Levels on the left, variance vs Base on the right — never levels alone. One shared scale per metric; horizontal bars, because vertical columns are reserved for time series.</p>
+        </div>
+        <div class="cmp" id="cmp"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Where the plan is tight</h2>
+          <p class="panel__note">Bullet graphs against a derived reference, not a business target — Stage-4 targets do not exist in the data yet.</p>
+        </div>
+        <div class="bullets" id="bullets"></div>
+        <div class="bandkey" id="bandkey"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Where the margin actually moves</h2>
+          <p class="panel__note" id="famnote">Gross margin by family, and what rationing takes off it.</p>
+        </div>
+        <div class="cmp" id="fam"></div>
+      </section>
+
+      <!-- Levers (m3) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Levers</h2>
+          <p class="panel__note">Tier 1 on the panel by default (SCOPE §4); Tier 2 sits behind Advanced — comprehensive underneath, calm on first render.</p>
+        </div>
+        <div class="leverpanel__banner">
+          <span>⚠</span>
+          <span><b>Not wired in this build.</b> Dragging a lever here changes nothing downstream — client-side recompute is a later build (SCOPE §2 row 7), not this one. Shown disabled rather than faked.</span>
+        </div>
+        <div class="levergroups" id="levergroups"></div>
+        <details class="advanced">
+          <summary>Advanced (Tier 2)</summary>
+          <div class="advanced__body">
+            <div class="levergroups" id="levergroups2"></div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Drill-down grid (m3) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Click any number, see how it was made</h2>
+          <p class="panel__note" id="gridnote">Fill rate by family and month. Every cell drills to its real Demand → Capacity → Rationing → Supply → Financials arithmetic.</p>
+        </div>
+        <div class="scenariotabs" id="scenariotabs" aria-label="Scenario"></div>
+        <div style="overflow-x:auto;">
+          <table class="dgrid" id="grid"></table>
+        </div>
+        <div class="legend" id="legend-drill"></div>
+      </section>
+
+      <!-- KPI panels (m4) -->
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Fill rate · three scenarios</h2>
+          <p class="panel__note" id="fillnote"></p>
+        </div>
+        <div class="fillrow" id="fillrow"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Bottleneck resource · monthly load</h2>
+          <p class="panel__note" id="loadnote"></p>
+        </div>
+        <div class="chartwrap" id="loadwrap"></div>
+      </section>
+
+      <div class="duo">
+        <section class="panel">
+          <div class="panel__head">
+            <h2 class="panel__title">Margin at risk · Constrained</h2>
+            <p class="panel__note" id="marginnote"></p>
+          </div>
+          <div class="chartwrap" id="marginwrap"></div>
+          <button type="button" class="drill" id="margindrill"><span>Dryers, 3 months of the year</span><span class="drill__arrow">→</span></button>
+        </section>
+        <section class="panel">
+          <div class="panel__head">
+            <h2 class="panel__title">Upside value · Base → Upside</h2>
+            <p class="panel__note" id="upsidenote"></p>
+          </div>
+          <div class="chartwrap" id="upsidewrap"></div>
+          <button type="button" class="drill" id="upsidedrill"><span>Open the family-by-family rollup</span><span class="drill__arrow">→</span></button>
+        </section>
+      </div>
+
+      <!-- Margin waterfall + bridge (m5) -->
+      <section class="panel" id="wfpanel">
+        <div class="panel__head wf__hdr">
+          <h2 class="panel__title">Margin bridge — how the recommended plan's gross margin is reached</h2>
+          <p class="panel__note">Base → +upside lift → −constrained penalty → realized. Every bar is a real figure from the engine; click any bar for the rollup, or a row in the table.</p>
+        </div>
+        <div class="wf__chart"><svg class="wf__svg" id="wfsvg" viewBox="0 0 760 300" role="img" aria-label="Margin waterfall: base, upside lift, constrained penalty, realized"></svg></div>
+        <div class="wf__legend">
+          <span><span class="wf__swatch wf__swatch--base"></span>Base margin (actual)</span>
+          <span><span class="wf__swatch wf__swatch--up"></span>Upside lift (▲)</span>
+          <span><span class="wf__swatch wf__swatch--pen"></span>Constrained penalty (▼)</span>
+          <span><span class="wf__swatch wf__swatch--real"></span>Realized — Constrained</span>
+        </div>
+      </section>
+
+      <section class="panel" id="bridgepanel">
+        <div class="panel__head">
+          <h2 class="panel__title">Bridge — the same four numbers, tabular</h2>
+          <p class="panel__note">Complex structures collapse to a table. The waterfall above and this table are the same arithmetic — trace it either way.</p>
+        </div>
+        <table class="wf__table" id="bridgetable">
+          <thead><tr><th>Step</th><th>Value</th><th>Rollup →</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <aside class="rail">
+      <section class="rail__section">
+        <div class="rail__label">What the plan says</div>
+        <ul class="rail__list" id="findings"></ul>
+      </section>
+      <section class="rail__section">
+        <div class="rail__label">Assumptions in force</div>
+        <div class="rail__callout" id="assumptions"></div>
+      </section>
+    </aside>
+
+  </div>
+
+  <footer class="foot">
+    <span>Margin bridge · base → upside → constrained.</span>
+    <span id="prov"></span>
+    <span id="stamp"></span>
+  </footer>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<div class="modal-scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="modaltitle">
+  <div class="modal" id="modal">
+    <button class="modal__close" id="modalclose" type="button" aria-label="Close">✕</button>
+    <div id="modalbody"></div>
+  </div>
+</div>
