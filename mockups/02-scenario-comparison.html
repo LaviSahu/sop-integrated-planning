@@ -290,7 +290,10 @@ tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
   function paintScenario(el, sid) {
     if (sid === "constrained") el.setAttribute("fill", "url(#hatch)");
     else if (sid === "upside") el.setAttribute("fill", "var(--sop-color-ink-soft)");
-    else el.setAttribute("fill", "var(--sop-color-chart-actual)");
+    else {
+      el.setAttribute("fill", "var(--sop-color-chart-actual)");
+      el.setAttribute("fill-opacity", "0.85"); // Lavi's call 2026-08-13: full-white solid read visually heavy against near-black canvas
+    }
   }
 
   var tip = document.getElementById("tip");
@@ -679,7 +682,7 @@ tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
   // ---- legend -------------------------------------------------------------
   var lg = document.getElementById("legend");
   [
-    { html: '<span class="legend__swatch" style="background:var(--sop-color-chart-actual)"></span>', text: "Base — solid" },
+    { html: '<span class="legend__swatch" style="background:var(--sop-color-chart-actual);opacity:0.85"></span>', text: "Base — solid" },
     { html: '<svg class="legend__swatch" viewBox="0 0 20 11"><rect width="20" height="11" fill="url(#hatch)"/></svg>', text: "Constrained — hatched" },
     { html: '<span class="legend__swatch" style="background:var(--sop-color-ink-soft)"></span>', text: "Upside — light solid" },
     { html: '<span class="delta delta--good">▲</span>', text: "better than Base" },

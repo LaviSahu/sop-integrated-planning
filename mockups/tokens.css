@@ -448,6 +448,11 @@ body {
   font-weight: var(--sop-weight-regular);
 } /* from B: "vs Apr 1 – Apr 27" comparison-basis text trailing the delta */
 .tile__why {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
   display: inline-block;
   margin-top: var(--sop-space-1);
   font-size: var(--sop-text-small);
@@ -455,7 +460,10 @@ body {
   color: var(--sop-color-info);
   text-decoration: underline;
   cursor: pointer;
-} /* from B/D: "Why?" / provenance drill-in link under the delta row */
+} /* appearance/background/border/padding reset added 2026-08-13 (mockup 4): the
+     class is meant for a <button> (keyboard-operable, semantic "why" action),
+     but had no UA-button reset — first real usage (mockup 4's tile row)
+     rendered it as a grey boxed button instead of a text link. */ /* from B/D: "Why?" / provenance drill-in link under the delta row */
 
 /* --- numeric alignment: apply to any <td>/<span> holding a figure ------ */
 .num {

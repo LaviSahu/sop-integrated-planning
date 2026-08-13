@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S&amp;OP Cockpit — KPI tiles (mockup 4 of 5)</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* =============================================================================
+   04-kpi-tiles.html — MOCKUP 4 of 5 (SCOPE.md §9)
+
+   What this mockup is for: the KPI tile row (DESIGN.md §2's candidate list,
+   read as a starting point per HANDOFF-sop-revamp.md, not gospel). Reuses
+   tokens.css's pre-built .tile anatomy verbatim — label row with info
+   affordance, hero number, delta row, "Why?" drill-in link — rather than
+   inventing new tile markup.
+
+   Six tiles: Fill Rate × 3 (Base/Upside/Constrained), Bottleneck Resource
+   Utilization, Upside Value Unlocked, Margin at Risk (Constrained). No
+   scenario tabs here — unlike mockups 1–3, the tile row's whole point is
+   showing all 3 scenarios at a glance with zero navigation (SCOPE §6b's
+   "three lenses on one canvas" pattern), so each tile names its own scenario.
+
+   Every "Why?" traces to real arithmetic, same discipline as mockup 3:
+   - Where a KPI IS one family/month's story (Margin at Risk's Dryers
+     shortfall), each contributing month is a button that opens the exact
+     same 5-step provenance modal mockup 3 built — copied verbatim, not
+     reinvented, per HANDOFF's explicit instruction to reuse it.
+   - Where a KPI is a genuine aggregate (a fill rate, a resource's 12-month
+     utilization curve, a base-vs-upside comparison), a new "rollup" modal
+     shows the real per-family or per-month numbers summing to the headline,
+     with cross-links into the 5-step modal wherever the rollup bottoms out
+     at one real family/month (e.g. the fill-rate-constrained rollup links
+     to Dryers' worst month; the bottleneck rollup links to the same cell).
+   All numbers are computed client-side from data.js at render time — nothing
+   below is a hardcoded figure, same as mockups 1–3.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--sop-color-canvas);
+  color: var(--sop-color-text-primary);
+  font-family: var(--sop-font-sans);
+  font-size: var(--sop-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1560px; margin: 0 auto; padding: 0 var(--sop-space-6) var(--sop-space-8); }
+
+/* --- chrome (matches mockups 1–3) ------------------------------------------ */
+.topbar { display: flex; align-items: center; gap: var(--sop-space-5);
+  padding: var(--sop-space-4) 0; border-bottom: 1px solid var(--sop-color-border); }
+.topbar__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.topbar__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.topbar__spacer { flex: 1; }
+.iconbtn { appearance: none; cursor: pointer; font: inherit; font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); background: var(--sop-color-surface);
+  border: 1px solid var(--sop-color-border); border-radius: var(--sop-radius-md); padding: 6px 12px; }
+.iconbtn:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+
+/* --- panels (matches mockups 1–3) ------------------------------------------ */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sop-space-5);
+  align-items: start; padding-top: var(--sop-space-5); }
+.stack { display: flex; flex-direction: column; gap: var(--sop-space-5); min-width: 0; }
+.panel { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-5); min-width: 0; }
+.panel__head { display: flex; align-items: baseline; gap: var(--sop-space-3);
+  margin-bottom: var(--sop-space-4); flex-wrap: wrap; }
+.panel__title { font-size: var(--sop-text-h2); font-weight: 600; margin: 0; }
+.panel__note { color: var(--sop-color-text-muted); font-size: var(--sop-text-small); margin: 0; }
+
+/* --- tile grid: tokens.css supplies .tile itself, this file only lays out
+   the grid and adds the status row + click affordance on top of it ------- */
+.tilegrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sop-space-4); }
+.tile__context { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.tile[data-clickable] { cursor: default; } /* the tile itself isn't clickable — only .tile__why is, per tokens.css's own affordance */
+
+/* --- rail (matches mockups 1–3) --------------------------------------------- */
+.rail { display: flex; flex-direction: column; gap: var(--sop-space-4); position: sticky; top: var(--sop-space-4); }
+.rail__section { background: var(--sop-color-surface); border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-lg); padding: var(--sop-space-4); }
+.rail__label { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sop-space-3); }
+.rail__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sop-space-3); }
+.rail__item { display: flex; gap: 9px; font-size: var(--sop-text-small); line-height: 1.45;
+  color: var(--sop-color-text-secondary); }
+.rail__item strong { color: var(--sop-color-text-primary); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 6px; }
+.dot--good { background: var(--sop-color-good); }
+.dot--warn { background: var(--sop-color-warn); }
+.dot--bad { background: var(--sop-color-bad); }
+.dot--info { background: var(--sop-color-info); }
+.rail__callout { border-left: 3px solid var(--sop-color-info); background: var(--sop-color-surface-sunken);
+  border-radius: var(--sop-radius-sm); padding: var(--sop-space-3); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+
+.foot { margin-top: var(--sop-space-6); padding-top: var(--sop-space-4);
+  border-top: 1px solid var(--sop-color-border); color: var(--sop-color-text-muted);
+  font-size: var(--sop-text-small); display: flex; gap: var(--sop-space-5); flex-wrap: wrap; }
+
+/* --- rollup table: same numeric discipline as mockup 3's .dgrid, sized for
+   a modal instead of a full-width panel ---------------------------------- */
+.rolluptable { width: 100%; border-collapse: collapse; font-size: var(--sop-text-small);
+  font-variant-numeric: tabular-nums; margin: var(--sop-space-3) 0; }
+.rolluptable th, .rolluptable td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--sop-color-border); }
+.rolluptable th:first-child, .rolluptable td:first-child { text-align: left; }
+.rolluptable thead th { color: var(--sop-color-text-muted); font-size: var(--sop-text-label);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; border-bottom: 1px solid var(--sop-color-border-strong); }
+.rolluptable tbody tr:nth-child(even) { background: var(--sop-table-stripe-bg); }
+.rolluptable tr.is-total td { font-weight: 700; border-top: 1px solid var(--sop-color-border-strong); border-bottom: none; }
+.rolluptable tr.is-highlight td { background: var(--sop-color-bad-bg); }
+.rolluptable .rowbtn { appearance: none; background: transparent; border: 0; padding: 0; cursor: pointer;
+  font: inherit; font-variant-numeric: tabular-nums; color: var(--sop-color-info); text-decoration: underline; }
+.rollup-formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: var(--sop-space-3) 0; line-height: 1.6; }
+.rollup-note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: var(--sop-space-2) 0 0; }
+.rollup-link { appearance: none; background: transparent; border: 1px solid var(--sop-color-border);
+  border-radius: var(--sop-radius-sm); padding: 6px 10px; margin-top: var(--sop-space-2);
+  font: inherit; font-size: var(--sop-text-small); color: var(--sop-color-info); cursor: pointer; }
+.rollup-link:hover { border-color: var(--sop-color-border-strong); }
+
+/* --- tooltip (matches mockup 2/3) ------------------------------------------- */
+.tip { position: fixed; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 90ms linear;
+  background: var(--sop-color-surface-raised); border: 1px solid var(--sop-color-border-strong);
+  border-radius: var(--sop-radius-md); padding: 10px 12px; font-size: var(--sop-text-small);
+  min-width: 180px; max-width: 280px; }
+.tip[data-show="1"] { opacity: 1; }
+.tip__head { font-weight: 600; margin-bottom: 6px; }
+
+/* --- modal: identical chrome to mockup 3, reused for both the 5-step
+   provenance drill-down AND the new rollups (same .modal/.modal-scrim) --- */
+.modal-scrim { position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: flex-start; justify-content: center; overflow-y: auto; padding: var(--sop-space-8) var(--sop-space-4); }
+.modal-scrim[data-open="1"] { display: flex; }
+.modal { position: relative; width: 100%; max-width: 720px; margin: auto 0; }
+.modal__close { position: absolute; top: var(--sop-space-4); right: var(--sop-space-4); appearance: none;
+  cursor: pointer; background: transparent; border: 1px solid var(--sop-color-border); border-radius: 50%;
+  width: 28px; height: 28px; color: var(--sop-color-text-secondary); font-size: 15px; line-height: 1; }
+.modal__close:hover { color: var(--sop-color-text-primary); border-color: var(--sop-color-border-strong); }
+.modal__eyebrow { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.modal__title { font-size: var(--sop-text-h1); font-weight: 700; margin: 0 0 var(--sop-space-5);
+  padding-right: 40px; }
+.step { display: flex; gap: var(--sop-space-4); }
+.step__rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.step__num { width: 26px; height: 26px; border-radius: 50%; background: var(--sop-color-surface-sunken);
+  border: 1px solid var(--sop-color-border-strong); display: flex; align-items: center; justify-content: center;
+  font-size: var(--sop-text-small); font-weight: 700; flex: none; }
+.step__num--live { border-color: var(--sop-color-brand); color: var(--sop-color-brand); }
+.step__num--skip { color: var(--sop-color-text-muted); }
+.step:last-of-type .step-connector { display: none; }
+.step-connector { flex: 1; min-height: var(--sop-space-4); width: 0; margin: 2px 0; }
+.step__body { padding-bottom: var(--sop-space-5); flex: 1; min-width: 0; }
+.step__title { font-size: var(--sop-text-body); font-weight: 600; margin: 0 0 4px; }
+.step__formula { font-size: var(--sop-text-small); font-variant-numeric: tabular-nums;
+  background: var(--sop-color-surface-sunken); border-radius: var(--sop-radius-sm);
+  padding: var(--sop-space-2) var(--sop-space-3); margin: 6px 0; line-height: 1.6;
+  overflow-x: auto; white-space: normal; word-break: break-word; }
+.step__note { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); margin: 4px 0 0; }
+.kpi-tieback { margin-top: var(--sop-space-2); border-radius: var(--sop-radius-sm);
+  border-left: 3px solid var(--sop-color-brand); background: var(--sop-color-brand-subtle);
+  padding: var(--sop-space-3) var(--sop-space-4); }
+.kpi-tieback__label { font-size: var(--sop-text-label); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sop-color-text-muted); margin: 0 0 4px; }
+.kpi-tieback__val { font-size: var(--sop-text-h1); font-weight: 700; font-variant-numeric: tabular-nums; margin: 0; }
+
+@media (max-width: 1180px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+}
+@media (max-width: 900px) {
+  .duo { grid-template-columns: 1fr; }
+  .fillrow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .fillrow { grid-template-columns: 1fr; }
+  .headline__top { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .modal { max-width: 100%; }
+}
+
+/* --- chart helpers (copied from mockup 02-scenario-comparison.html) -------- */
+.bar-label { fill: var(--sop-color-text-secondary); font-size: 10px; font-family: var(--sop-font-sans); }
+.bar-value { fill: var(--sop-color-text-primary); font-size: 10px; font-weight: 600;
+  font-family: var(--sop-font-sans); }
+.tick-text { fill: var(--sop-color-text-muted); font-size: 9px; font-family: var(--sop-font-sans); }
+.axis-line { stroke: var(--sop-color-chart-axis); stroke-width: 1; }
+.ref-line { stroke: var(--sop-color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.mark-hit { fill: transparent; cursor: pointer; }
+
+/* --- bullet graphs -------------------------------------------------------- */
+.bullets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.bullet { min-width: 0; }
+.bullet__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sop-space-3); }
+.bullet__name { font-size: var(--sop-text-small); font-weight: 600; }
+.bullet__sub { color: var(--sop-color-text-muted); font-size: var(--sop-text-label); }
+.bullet svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+
+.bandkey { display: flex; gap: var(--sop-space-4); flex-wrap: wrap; margin-top: var(--sop-space-4);
+  padding-top: var(--sop-space-3); border-top: 1px solid var(--sop-color-border);
+  font-size: var(--sop-text-small); color: var(--sop-color-text-secondary); }
+.bandkey__item { display: flex; align-items: center; gap: 7px; }
+.bandkey__swatch { width: 20px; height: 11px; display: inline-block; border-radius: 2px; }
+
+/* --- legend --------------------------------------------------------------- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--sop-space-4); align-items: center;
+  margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); }
+.legend__item { display: flex; align-items: center; gap: 7px; }
+.legend__swatch { width: 20px; height: 11px; display: inline-block; }
+
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.delta--good { color: var(--sop-color-good); }
+.delta--bad { color: var(--sop-color-bad); }
+.delta--flat { color: var(--sop-color-text-muted); }
+
+/* --- mockup-4 chart panels (IBCS, SCOPE §8b) ------------------------------- */
+.fillrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sop-space-5); }
+.chartwrap { min-width: 0; cursor: pointer; }
+.chartwrap svg { display: block; width: 100%; height: auto; }
+.bullet.clickable { cursor: pointer; }
+.chartnote { font-size: var(--sop-text-small); color: var(--sop-color-text-secondary);
+  margin: var(--sop-space-3) 0 0; line-height: 1.7; }
+
+/* --- headline band — the 5-second decision (SCOPE §8b) --------------------- */
+.panel--headline { padding: var(--sop-space-5) var(--sop-space-6); }
+.headline__top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sop-space-6); }
+.headline__kicker { display: block; font-size: var(--sop-text-label); text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--sop-color-text-muted); margin-bottom: 6px; }
+.headline__lede { font-size: var(--sop-text-body); line-height: 1.5; margin: 0; }
+.headline__lede strong { font-weight: 700; }
+.headline__trade { margin-top: var(--sop-space-4); padding-top: var(--sop-space-3);
+  border-top: 1px solid var(--sop-color-border); font-size: var(--sop-text-small);
+  color: var(--sop-color-text-secondary); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="var(--sop-color-ink-soft)" stroke-width="2.2"></line>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="page">
+  <header class="topbar">
+    <div>
+      <h1 class="topbar__title" id="co">S&amp;OP Cockpit</h1>
+      <div class="topbar__sub">KPI tiles</div>
+    </div>
+    <div class="topbar__spacer"></div>
+    <button class="iconbtn" id="themetoggle">Light</button>
+  </header>
+
+  <div class="main">
+    <div class="stack">
+
+      <section class="panel panel--headline" id="headline"></section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Fill rate · three scenarios</h2>
+          <p class="panel__note">Each bullet against full-fill (100%). Pattern — not colour — identifies the scenario. Click for the family-by-family rollup.</p>
+        </div>
+        <div class="fillrow" id="fillrow"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Bottleneck resource · monthly load</h2>
+          <p class="panel__note">Graded bands replace a single &gt;100% flag. This curve is the constraint that rations Dryers. Click for the 12-month table.</p>
+        </div>
+        <div class="chartwrap" id="loadwrap"></div>
+      </section>
+
+      <div class="duo">
+        <section class="panel">
+          <div class="panel__head">
+            <h2 class="panel__title">Margin at risk · Constrained</h2>
+            <p class="panel__note">Dryers, 3 months only — the other 9 lose nothing.</p>
+          </div>
+          <div class="chartwrap" id="marginwrap"></div>
+        </section>
+        <section class="panel">
+          <div class="panel__head">
+            <h2 class="panel__title">Upside value · Base → Upside</h2>
+            <p class="panel__note">Margin is the KPI; revenue uplift is context. Click for the family rollup.</p>
+          </div>
+          <div class="chartwrap" id="upsidewrap"></div>
+        </section>
+      </div>
+
+    </div>
+
+    <aside class="rail">
+      <section class="rail__section">
+        <div class="rail__label">Reading this screen</div>
+        <ul class="rail__list" id="findings"></ul>
+      </section>
+      <section class="rail__section">
+        <div class="rail__label">Thresholds and assumptions</div>
+        <div class="rail__callout" id="assumptions"></div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span>Mockup 4 of 5 — KPI tiles.</span>
+    <span id="prov"></span>
+    <span id="stamp"></span>
+  </footer>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<div class="modal-scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="modaltitle">
+  <div class="modal" id="modal">
+    <button class="modal__close" id="modalclose" type="button" aria-label="Close">✕</button>
+    <div id="modalbody"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.SOP_DATA;
+  var SC_LABEL = { base: "Base", constrained: "Constrained", upside: "Upside" };
+
+  function money(v) {
+    var sign = v < 0 ? "-" : "";
+    var a = Math.abs(v);
+    if (a >= 1e6) return sign + "$" + (a / 1e6).toFixed(2) + "M";
+    if (a >= 1e3) return sign + "$" + (a / 1e3).toFixed(0) + "k";
+    return sign + "$" + a.toFixed(0);
+  }
+  function money2(v) { return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function units(v) { return Math.round(v).toLocaleString("en-US"); }
+  function units2(v) { return v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function pct(v, dp) { return v.toFixed(dp === undefined ? 1 : dp) + "%"; }
+  function hrs(v) { return v.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " h"; }
+
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // Scenario identity = fill pattern, never hue (SCOPE §8b).
+  function paintScenario(el, sid) {
+    if (sid === "constrained") el.setAttribute("fill", "url(#hatch)");
+    else if (sid === "upside") el.setAttribute("fill", "var(--sop-color-ink-soft)");
+    else {
+      el.setAttribute("fill", "var(--sop-color-chart-actual)");
+      el.setAttribute("fill-opacity", "0.85"); // Lavi's call 2026-08-13: full-white solid read visually heavy against near-black canvas
+    }
+  }
+
+  // ---- bullet graphs with graded bands ------------------------------------
+  // Bands are OUR thresholds, so they are stated in the rail, not hidden.
+  // Band tints are set here rather than reused from the -bg tokens: those are
+  // 0.12 alpha, tuned for chip backgrounds, and vanish under a hatched mark.
+  var BANDS = [
+    { to: 85, label: "safe", fill: "rgba(52, 211, 153, 0.20)" },
+    { to: 100, label: "strained", fill: "rgba(251, 191, 36, 0.22)" },
+    { to: 125, label: "critical", fill: "rgba(248, 113, 113, 0.26)" }
+  ];
+
+  var tip = document.getElementById("tip");
+  function showTip(evt, head) {
+    tip.innerHTML = "";
+    var h = document.createElement("div"); h.className = "tip__head"; h.textContent = head; tip.appendChild(h);
+    tip.dataset.show = "1";
+    var x = evt.clientX + 14, y = evt.clientY + 14;
+    if (x + 300 > window.innerWidth) x = evt.clientX - 300;
+    if (y + 150 > window.innerHeight) y = evt.clientY - 150;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.dataset.show = "0"; }
+
+  // ---- shared modal chrome (open/close), reused by every drill-down ---------
+  var scrim = document.getElementById("scrim");
+  var modalBody = document.getElementById("modalbody");
+  var lastFocus = null;
+
+  function showModal(html) {
+    modalBody.innerHTML = html;
+    lastFocus = document.activeElement;
+    scrim.dataset.open = "1";
+    document.getElementById("modalclose").focus();
+    document.addEventListener("keydown", onModalKeydown);
+    // event delegation for any [data-drill] buttons the rollup HTML contains
+    Array.prototype.forEach.call(modalBody.querySelectorAll("[data-drill]"), function (btn) {
+      btn.addEventListener("click", function () {
+        var parts = btn.getAttribute("data-drill").split("|");
+        openModal(parts[0], parts[1], Number(parts[2]));
+      });
+    });
+    Array.prototype.forEach.call(modalBody.querySelectorAll("[data-rollup]"), function (btn) {
+      btn.addEventListener("click", function () { openRollup(btn.getAttribute("data-rollup")); });
+    });
+  }
+  function closeModal() {
+    scrim.dataset.open = "0";
+    document.removeEventListener("keydown", onModalKeydown);
+    if (lastFocus) lastFocus.focus();
+  }
+  function onModalKeydown(e) { if (e.key === "Escape") closeModal(); }
+  document.getElementById("modalclose").addEventListener("click", closeModal);
+  scrim.addEventListener("click", function (e) { if (e.target === scrim) closeModal(); });
+
+  // ---- 5-step provenance modal — copied verbatim from mockup 3, per HANDOFF's
+  // explicit instruction to reuse openModal(scenario, famId, month) rather than
+  // reinvent it ------------------------------------------------------------
+  function stepHtml(num, title, formulaHtml, noteHtml, live) {
+    return (
+      '<div class="step">' +
+        '<div class="step__rail"><div class="step__num' + (live === false ? " step__num--skip" : " step__num--live") + '">' + num + '</div>' +
+          '<div class="step-connector"></div></div>' +
+        '<div class="step__body"><div class="step__title">' + title + '</div>' +
+          (formulaHtml ? '<div class="step__formula">' + formulaHtml + '</div>' : "") +
+          (noteHtml ? '<p class="step__note">' + noteHtml + '</p>' : "") +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function openModal(scenario, famId, month) {
+    var f = D.families.filter(function (x) { return x.id === famId; })[0];
+    var mn = D.month_names[month - 1];
+    var entry = D.provenance[scenario][famId][String(month)];
+    var dem = entry.demand, sup = entry.supply, fin = entry.financials;
+    var cap = entry.capacity, rat = entry.rationing;
+
+    var html = '<p class="modal__eyebrow">' + SC_LABEL[scenario] + " · " + f.name + " · " + mn + '</p>' +
+      '<h2 class="modal__title" id="modaltitle">How ' + pct(sup.fill_rate * 100, 1) + ' fill rate was made</h2>';
+
+    var demFormula = dem.uplift_applied
+      ? units(dem.base_units) + " base × (1 + " + pct(dem.uplift_pct * 100, 1) + ") = " + units(dem.demand_units) + " units"
+      : units(dem.base_units) + " base, no uplift in " + SC_LABEL[scenario] + " = " + units(dem.demand_units) + " units";
+    html += stepHtml(1, "Demand", demFormula, "Base monthly demand for " + f.name + " in " + mn + (dem.uplift_applied ? ", uplifted by this family's own promotion assumption." : "."));
+
+    if (cap.length === 0) {
+      html += stepHtml(2, "Capacity", null, f.name + " doesn't share a constrained resource — no RCCP load to check.", false);
+    } else {
+      var capRows = cap.map(function (c) {
+        var rname = D.resources.filter(function (r) { return r.id === c.resource_id; })[0].name;
+        return rname + ": " + hrs(c.load_hours) + " load ÷ " + hrs(c.available_hours) + " installed = " + pct(c.utilization_pct, 1) +
+          (c.is_bottleneck ? " — OVER installed capacity" : "");
+      }).join("<br>");
+      html += stepHtml(2, "Capacity", capRows, "Load = every family's demand this month × hours/unit on that resource, summed. Measured against installed hours regardless of scenario (RCCP is a feasibility test, not a decision).");
+    }
+
+    if (rat.length === 0) {
+      html += stepHtml(3, "Rationing", null, "No shared resource to ration.", false);
+    } else {
+      var anyConstrained = rat.some(function (r) { return r && r.constrained; });
+      var ratRows = rat.map(function (r) {
+        if (!r) return "";
+        var rname = D.resources.filter(function (x) { return x.id === r.resource_id; })[0].name;
+        if (!r.constrained) {
+          return rname + ": not over capacity — full ask granted (" + hrs(r.wanted_hours) + ").";
+        }
+        return rname + ": rank " + r.rank + " of " + r.n_users + " by margin ($" + r.unit_margin + "/unit). " +
+          hrs(r.remaining_before_hours) + " hours left before this family → min(" + hrs(r.wanted_hours) + " wanted, " +
+          hrs(r.remaining_before_hours) + " left) = " + hrs(r.granted_hours) + " granted → " + hrs(r.remaining_after_hours) + " left for lower-ranked families. " +
+          "= " + units2(r.allowed_units) + " units this resource can support.";
+      }).join("<br><br>");
+      html += stepHtml(3, "Rationing",
+        anyConstrained ? ratRows : null,
+        anyConstrained
+          ? "When a resource is over capacity, " + SC_LABEL[scenario] + " protects the highest-margin business first — greedily, in descending unit-margin order — until hours run out."
+          : "Nothing was over capacity this month, so nothing was rationed." + (rat.length ? "<br>" + ratRows : ""),
+        anyConstrained);
+    }
+
+    var supFormula =
+      "Produced = min(what rationing allowed, " + units(dem.demand_units) + " demand) = " + units2(sup.produced_units) + " units<br>" +
+      "Shipped = min(" + units2(sup.opening_inventory_units) + " opening + " + units2(sup.produced_units) + " produced, " + units(dem.demand_units) + " demand) = " + units2(sup.shipped_units) + " units<br>" +
+      "Unmet = " + units(dem.demand_units) + " demand − " + units2(sup.shipped_units) + " shipped = " + units2(sup.unmet_units) + " units<br>" +
+      "Ending inventory = " + units2(sup.opening_inventory_units) + " + " + units2(sup.produced_units) + " − " + units2(sup.shipped_units) + " = " + units2(sup.ending_inventory_units) + " units";
+    html += stepHtml(4, "Supply", supFormula, "No backorders: unmet demand this month is a lost sale, not a promise for next month. Ending inventory carries forward as next month's opening balance.");
+
+    var finFormula =
+      "Revenue = " + units2(sup.shipped_units) + " shipped × $" + fin.unit_price + " price = " + money2(fin.revenue) + "<br>" +
+      "Gross margin = " + units2(sup.shipped_units) + " shipped × $" + fin.unit_margin + " margin/unit = " + money2(fin.gross_margin) +
+      (sup.unmet_units > 0 ? "<br>Lost margin = " + units2(sup.unmet_units) + " unmet × $" + fin.unit_margin + " = " + money2(fin.lost_margin) : "") +
+      "<br>Inventory value = " + units2(sup.ending_inventory_units) + " ending × $" + fin.unit_variable_cost + " variable cost = " + money2(fin.inventory_value);
+    html += stepHtml(5, "Financials", finFormula, null);
+
+    html += '<div class="kpi-tieback"><p class="kpi-tieback__label">Rolls into fill rate</p>' +
+      '<p class="kpi-tieback__val">' + units2(sup.shipped_units) + ' ÷ ' + units(dem.demand_units) + ' = ' + pct(sup.fill_rate * 100, 1) + '</p>' +
+      '<p class="step__note">This is one family/month; the tile above sums this same arithmetic across all 6 families and 12 months.</p></div>';
+
+    showModal(html);
+  }
+
+  // ---- rollups: NEW this mockup — a KPI tile's aggregate traced to its real
+  // contributing families/months, not a single-cell story. Each ends with a
+  // "Full derivation →" button that reuses openModal() wherever the rollup
+  // bottoms out at one real family/month. ------------------------------------
+  function fillRateSummary(scenario) {
+    var rows = D.scenarios[scenario].reconciliation;
+    var demand = 0, shipped = 0, unmet = 0;
+    rows.forEach(function (r) { demand += r.demand_units; shipped += r.shipped_units; unmet += r.unmet_units; });
+    return { rows: rows, demand: demand, shipped: shipped, unmet: unmet, fillRate: shipped / demand };
+  }
+
+  function openFillRateRollup(scenario) {
+    var s = fillRateSummary(scenario);
+    var html = '<p class="modal__eyebrow">' + SC_LABEL[scenario] + ' · Fill rate rollup</p>' +
+      '<h2 class="modal__title" id="modaltitle">How ' + pct(s.fillRate * 100, 1) + ' fill rate was made</h2>';
+
+    var rowsHtml = s.rows.map(function (r) {
+      var hi = r.unmet_units > 0 ? " is-highlight" : "";
+      return '<tr class="' + hi.trim() + '"><td>' + r.family_name + '</td><td>' + units(r.demand_units) +
+        '</td><td>' + units(r.shipped_units) + '</td><td>' + units(r.unmet_units) + '</td><td>' + pct(r.fill_rate_pct, 1) + '</td></tr>';
+    }).join("");
+    html += '<table class="rolluptable"><thead><tr><th>Family</th><th>Demand</th><th>Shipped</th><th>Unmet</th><th>Fill %</th></tr></thead><tbody>' +
+      rowsHtml + '<tr class="is-total"><td>Total</td><td>' + units(s.demand) + '</td><td>' + units(s.shipped) +
+      '</td><td>' + units(s.unmet) + '</td><td>' + pct(s.fillRate * 100, 1) + '</td></tr></tbody></table>';
+
+    html += '<div class="rollup-formula">Σ shipped ÷ Σ demand = ' + units(s.shipped) + ' ÷ ' + units(s.demand) + ' = ' + pct(s.fillRate * 100, 1) + '</div>';
+
+    if (scenario === "constrained") {
+      var dry = s.rows.filter(function (r) { return r.family_id === "FAM-DRY"; })[0];
+      html += '<p class="rollup-note">Dryers are the <strong>only</strong> family with any unmet demand — ' +
+        units(dry.unmet_units) + ' units across 3 months (April, May, December). May alone is ' +
+        '65% of it.</p>' +
+        '<button type="button" class="rollup-link" data-drill="constrained|FAM-DRY|5">Full derivation for May →</button>';
+    }
+    if (scenario === "upside") {
+      html += '<p class="rollup-note">Assembly Line A exceeds installed capacity in 4 of these 12 months (peak 115% in April) — ' +
+        'the same load as Constrained — but Upside ships everything anyway. Rationing (mockup 3, step 3) is only applied in Constrained; ' +
+        'Upside assumes the capacity gap gets topped up instead.</p>' +
+        '<button type="button" class="rollup-link" data-rollup="bottleneck">See the capacity curve →</button>';
+    }
+    showModal(html);
+  }
+
+  function openBottleneckRollup() {
+    var rid = D.bottleneck.resource_id;
+    var resource = D.resources.filter(function (r) { return r.id === rid; })[0];
+    var monthly = D.scenarios.constrained.utilization[rid];
+    var peak = monthly.reduce(function (a, b) { return b.utilization_pct > a.utilization_pct ? b : a; });
+
+    var html = '<p class="modal__eyebrow">Constrained · ' + resource.name + ' · Capacity rollup</p>' +
+      '<h2 class="modal__title" id="modaltitle">How ' + pct(peak.utilization_pct, 1) + ' peak utilization was made</h2>';
+
+    var rowsHtml = monthly.map(function (m) {
+      var over = m.utilization_pct > 100;
+      var isPeak = m.month === peak.month;
+      return '<tr class="' + (over ? "is-highlight" : "") + '"><td>' + D.month_names[m.month - 1] + (isPeak ? " ★" : "") +
+        '</td><td>' + hrs(m.load_hours) + '</td><td>' + hrs(m.available_hours) + '</td><td>' + pct(m.utilization_pct, 1) + '</td></tr>';
+    }).join("");
+    html += '<table class="rolluptable"><thead><tr><th>Month</th><th>Load</th><th>Installed</th><th>Utilization</th></tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+
+    html += '<div class="rollup-formula">Peak = ' + D.month_names[peak.month - 1] + ': ' + hrs(peak.load_hours) + ' load ÷ ' + hrs(peak.available_hours) + ' installed = ' + pct(peak.utilization_pct, 1) + '</div>';
+
+    html += '<p class="rollup-note">Load = every family\'s demand that month × hours/unit on ' + resource.name + ', summed — RCCP is measured against installed hours regardless of scenario. ' +
+      resource.name + ' is the only resource that ever breaches capacity: QA and Packaging stay under 93% in every scenario.</p>' +
+      '<p class="rollup-note">This exact constraint is what rations Dryers in May — rank 3 of 3 by margin, only 1,128.8 of 1,947.9 hours wanted were granted.</p>' +
+      '<button type="button" class="rollup-link" data-drill="constrained|FAM-DRY|5">See that rationing decision →</button>';
+
+    showModal(html);
+  }
+
+  function openUpsideValueRollup() {
+    var rb = D.scenarios.base.reconciliation, ru = D.scenarios.upside.reconciliation;
+    var totalDm = 0, totalDr = 0;
+    var rowsHtml = rb.map(function (b, i) {
+      var u = ru[i];
+      var dm = u.gross_margin - b.gross_margin;
+      var dr = u.revenue - b.revenue;
+      totalDm += dm; totalDr += dr;
+      return '<tr><td>' + b.family_name + '</td><td>' + money(b.gross_margin) + '</td><td>' + money(u.gross_margin) +
+        '</td><td>' + money(dm) + '</td><td>' + money(dr) + '</td></tr>';
+    }).join("");
+
+    var html = '<p class="modal__eyebrow">Base → Upside · Financial rollup</p>' +
+      '<h2 class="modal__title" id="modaltitle">How ' + money(totalDm) + ' margin was unlocked</h2>';
+    html += '<table class="rolluptable"><thead><tr><th>Family</th><th>Base margin</th><th>Upside margin</th><th>Δ margin</th><th>Δ revenue</th></tr></thead><tbody>' +
+      rowsHtml + '<tr class="is-total"><td>Total</td><td>' + money(D.scenarios.base.summary.total_gross_margin) +
+      '</td><td>' + money(D.scenarios.upside.summary.total_gross_margin) + '</td><td>' + money(totalDm) + '</td><td>' + money(totalDr) + '</td></tr></tbody></table>';
+    html += '<div class="rollup-formula">ΣUpside margin − ΣBase margin = ' + money(D.scenarios.upside.summary.total_gross_margin) + ' − ' +
+      money(D.scenarios.base.summary.total_gross_margin) + ' = ' + money(totalDm) + '<br>Revenue uplift (context, not the tile\'s headline): ' + money(totalDr) + '</div>';
+    html += '<p class="rollup-note">Refrigerators and Washers together are ~80% of the margin uplift. Upside assumes every family\'s own upside_uplift_pct demand ships in full — see the Fill Rate — Upside tile for why that holds even where Assembly Line A is nominally over capacity.</p>';
+
+    showModal(html);
+  }
+
+  function openMarginAtRiskRollup() {
+    var months = [4, 5, 12];
+    var total = 0;
+    var rowsHtml = months.map(function (m) {
+      var sl = D.provenance.constrained["FAM-DRY"][String(m)].supply;
+      var lost = sl.unmet_units * D.provenance.constrained["FAM-DRY"][String(m)].financials.unit_margin;
+      total += lost;
+      return '<tr><td><button type="button" class="rowbtn" data-drill="constrained|FAM-DRY|' + m + '">' + D.month_names[m - 1] + '</button></td>' +
+        '<td>' + units2(sl.unmet_units) + '</td><td>$' + D.provenance.constrained["FAM-DRY"][String(m)].financials.unit_margin + '</td><td>' + money2(lost) + '</td></tr>';
+    }).join("");
+
+    var html = '<p class="modal__eyebrow">Constrained · Dryers · Financial-risk rollup</p>' +
+      '<h2 class="modal__title" id="modaltitle">How ' + money2(total) + ' margin at risk was made</h2>';
+    html += '<table class="rolluptable"><thead><tr><th>Month</th><th>Unmet units</th><th>Unit margin</th><th>Lost margin</th></tr></thead><tbody>' +
+      rowsHtml + '<tr class="is-total"><td>Total</td><td></td><td></td><td>' + money2(total) + '</td></tr></tbody></table>';
+    html += '<p class="rollup-note">Other 9 months: fully served, $0 lost margin. Dryers are the only family that loses anything in Constrained — see the Bottleneck tile for why Assembly Line A picks Dryers last.</p>' +
+      '<button type="button" class="rollup-link" data-rollup="bottleneck">Why Assembly Line A rations Dryers →</button>';
+
+    showModal(html);
+  }
+
+  function openRollup(kind) {
+    if (kind === "bottleneck") return openBottleneckRollup();
+    if (kind === "upside-value") return openUpsideValueRollup();
+    if (kind === "margin-at-risk") return openMarginAtRiskRollup();
+    if (kind.indexOf("fillrate-") === 0) return openFillRateRollup(kind.slice("fillrate-".length));
+  }
+
+  // ---- IBCS chart panels (SCOPE §8b) ---------------------------------------
+  // Replaces the rejected hero-tile grid. Each panel is a real chart; drill-down
+  // reuses the verified rollups + 5-step modal below. svgEl/paintScenario/BANDS
+  // are copied from mockup 02 (see <style> + the <defs> after <body>).
+
+  function resName(rid) { return D.resources.filter(function (r) { return r.id === rid; })[0].name; }
+  function lineA() { return D.scenarios.constrained.utilization[D.bottleneck.resource_id]; } // 12 months
+  function peakMonth() {
+    return lineA().reduce(function (a, b) { return b.utilization_pct > a.utilization_pct ? b : a; });
+  }
+
+  // bulletSvg generalized from mockup 02: pass bands:[] for a target-style
+  // bullet (faint track, no graded zones) — fill rate has no "strained" zone.
+  function bulletSvg(value, maxScale, refValue, refLabel, fmt, sid, bands) {
+    var W = 400, H = 36, LABEL_W = 54, plotW = W - LABEL_W;
+    var x = function (v) { return (v / maxScale) * plotW; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, role: "img" });
+    var useBands = bands || BANDS, prev = 0;
+    if (useBands.length) {
+      useBands.forEach(function (b) {
+        svg.appendChild(svgEl("rect", { x: x(prev), y: 2, width: Math.max(0, x(Math.min(b.to, maxScale)) - x(prev)), height: 20, fill: b.fill }));
+        if (prev > 0) svg.appendChild(svgEl("line", { x1: x(prev), y1: 2, x2: x(prev), y2: 22, stroke: "var(--sop-color-canvas)", "stroke-width": 1 }));
+        prev = b.to;
+      });
+    } else {
+      svg.appendChild(svgEl("rect", { x: 0, y: 2, width: plotW, height: 20, rx: 2, fill: "var(--sop-color-surface-sunken)" }));
+    }
+    var measure = svgEl("rect", { x: 0, y: 8.5, width: Math.max(2, x(value)), height: 7, rx: 1 });
+    paintScenario(measure, sid);
+    svg.appendChild(measure);
+    svg.appendChild(svgEl("line", { x1: x(refValue), y1: 0, x2: x(refValue), y2: 24, stroke: "var(--sop-color-text-primary)", "stroke-width": 2 }));
+    var rl = svgEl("text", { x: x(refValue) - 4, y: 33, class: "tick-text", "text-anchor": "end" });
+    rl.textContent = refLabel; svg.appendChild(rl);
+    var vl = svgEl("text", { x: W, y: 16, class: "bar-value", "text-anchor": "end" });
+    vl.textContent = fmt(value); svg.appendChild(vl);
+    return svg;
+  }
+
+  function buildHeadline() {
+    var base = D.scenarios.base.summary, up = D.scenarios.upside.summary, con = D.scenarios.constrained.summary;
+    var lift = up.total_gross_margin - base.total_gross_margin;       // Upside over Base
+    var conVsBase = con.total_gross_margin - base.total_gross_margin; // Constrained banks
+    var atRisk = con.total_lost_margin;                               // Dryers, 3 months
+    var pk = peakMonth();
+    document.getElementById("headline").innerHTML =
+      '<div class="headline__top">' +
+        '<div><span class="headline__kicker">Recommended plan</span>' +
+        '<p class="headline__lede">Ship <strong>Constrained</strong>: <strong>' + money(con.total_gross_margin) + '</strong> gross margin at <strong>' + pct(con.fill_rate * 100, 2) + '</strong> fill — the realistic ceiling.</p></div>' +
+        '<div><span class="headline__kicker">The one constraint</span>' +
+        '<p class="headline__lede">' + resName(D.bottleneck.resource_id) + ' peaks at <strong>' + pct(pk.utilization_pct, 1) + '</strong> of installed hours in ' + D.month_names[pk.month - 1] + ' — it rations Dryers and caps the plan.</p></div>' +
+      '</div>' +
+      '<div class="headline__trade">' +
+        'Constrained banks <span class="delta delta--good">▲ ' + money(conVsBase) + '</span> over Base' +
+        ' while shedding only <span class="delta delta--bad">▼ ' + money2(atRisk) + '</span> of the ' + money(lift) + ' Upside lift (Dryers, 3 months).' +
+      '</div>';
+  }
+
+  function buildFillBullets() {
+    var host = document.getElementById("fillrow");
+    host.innerHTML = "";
+    var con = fillRateSummary("constrained");
+    var dryUnmet = con.rows.filter(function (r) { return r.family_id === "FAM-DRY"; })[0].unmet_units;
+    var totalLost = D.scenarios.constrained.summary.total_lost_margin;
+    ["base", "upside", "constrained"].forEach(function (sid) {
+      var s = fillRateSummary(sid);
+      var wrap = document.createElement("div"); wrap.className = "bullet clickable";
+      var head = document.createElement("div"); head.className = "bullet__head";
+      var nm = document.createElement("span"); nm.className = "bullet__name"; nm.textContent = SC_LABEL[sid];
+      var sub = document.createElement("span"); sub.className = "bullet__sub";
+      sub.textContent = s.unmet > 0 ? units(dryUnmet) + " unmet · −" + money2(totalLost) : "0 unmet";
+      head.appendChild(nm); head.appendChild(sub); wrap.appendChild(head);
+      var chart = bulletSvg(s.fillRate * 100, 100, 100, "full fill", function (v) { return pct(v, 1); }, sid, []);
+      wrap.appendChild(chart);
+      var tip = SC_LABEL[sid] + " fill rate " + pct(s.fillRate * 100, 2) + " — " + (s.unmet > 0 ? units(dryUnmet) + " units unmet (Dryers)" : "everything shipped");
+      wrap.addEventListener("click", function () { openFillRateRollup(sid); });
+      wrap.addEventListener("mouseenter", function (e) { showTip(e, tip + " · click for the rollup"); });
+      wrap.addEventListener("mousemove", function (e) { showTip(e, tip + " · click for the rollup"); });
+      wrap.addEventListener("mouseleave", hideTip);
+      host.appendChild(wrap);
+    });
+  }
+
+  function drawLoadCurve() {
+    var data = lineA(), pk = peakMonth(), maxScale = 125;
+    var BW = 520, BH = 150, PL = 8, PR = 8, PT = 16, PB = 22;
+    var plotW = BW - PL - PR, plotH = BH - PT - PB, slot = plotW / 12, bw = slot * 0.6;
+    var cx = function (i) { return PL + (i + 0.5) * slot; };
+    var y = function (v) { return PT + plotH - (Math.min(v, maxScale) / maxScale) * plotH; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + BH, role: "img" });
+    var prev = 0; // graded zone backgrounds (safe/strained/critical)
+    BANDS.forEach(function (b) {
+      svg.appendChild(svgEl("rect", { x: PL, y: y(b.to), width: plotW, height: y(prev) - y(b.to), fill: b.fill }));
+      prev = b.to;
+    });
+    svg.appendChild(svgEl("line", { x1: PL, y1: y(100), x2: BW - PR, y2: y(100), class: "ref-line" }));
+    var cap = svgEl("text", { x: BW - PR, y: y(100) - 4, class: "tick-text", "text-anchor": "end" });
+    cap.textContent = "installed capacity (100%)"; svg.appendChild(cap);
+    data.forEach(function (m, i) {
+      var over = m.utilization_pct > 100;
+      svg.appendChild(svgEl("rect", { x: cx(i) - bw / 2, y: y(m.utilization_pct), width: bw, height: PT + plotH - y(m.utilization_pct), rx: 1,
+        fill: over ? "var(--sop-color-bad)" : "var(--sop-color-chart-actual)", "fill-opacity": over ? 0.9 : 0.8 }));
+      if (m.month === pk.month) {
+        var lab = svgEl("text", { x: cx(i), y: y(m.utilization_pct) - 5, class: "bar-value", "text-anchor": "middle", fill: "var(--sop-color-bad)" });
+        lab.textContent = pct(m.utilization_pct, 1); svg.appendChild(lab);
+      }
+      var ml = svgEl("text", { x: cx(i), y: BH - 6, class: "tick-text", "text-anchor": "middle" });
+      ml.textContent = D.month_names[m.month - 1].slice(0, 1); svg.appendChild(ml);
+      var hit = svgEl("rect", { x: cx(i) - slot / 2, y: PT, width: slot, height: plotH, class: "mark-hit" });
+      hit.addEventListener("mousemove", function (e) {
+        showTip(e, D.month_names[m.month - 1] + ": " + hrs(m.load_hours) + " load ÷ " + hrs(m.available_hours) + " = " + pct(m.utilization_pct, 1) + (over ? " — OVER capacity" : ""));
+      });
+      hit.addEventListener("mouseleave", hideTip); svg.appendChild(hit);
+    });
+    var wrap = document.getElementById("loadwrap"); wrap.innerHTML = ""; wrap.appendChild(svg);
+    wrap.addEventListener("click", function () { openBottleneckRollup(); });
+  }
+
+  function drawMarginMonths() {
+    var rows = [4, 5, 12].map(function (mo) {
+      var entry = D.provenance.constrained["FAM-DRY"][String(mo)];
+      return { month: mo, unmet: entry.supply.unmet_units, um: entry.financials.unit_margin,
+               lost: entry.supply.unmet_units * entry.financials.unit_margin };
+    });
+    var total = rows.reduce(function (a, r) { return a + r.lost; }, 0);
+    var max = Math.max.apply(null, rows.map(function (r) { return r.lost; })) || 1;
+    var BW = 360, BH = 130, PL = 8, PR = 8, PT = 16, PB = 22;
+    var plotW = BW - PL - PR, plotH = BH - PT - PB, slot = plotW / rows.length, bw = slot * 0.5;
+    var cx = function (i) { return PL + (i + 0.5) * slot; };
+    var y = function (v) { return PT + plotH - (v / max) * plotH; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + BH, role: "img" });
+    svg.appendChild(svgEl("line", { x1: PL, y1: PT + plotH, x2: BW - PR, y2: PT + plotH, class: "axis-line" }));
+    rows.forEach(function (r, i) {
+      svg.appendChild(svgEl("rect", { x: cx(i) - bw / 2, y: y(r.lost), width: bw, height: PT + plotH - y(r.lost), rx: 1, fill: "var(--sop-color-bad)", "fill-opacity": 0.85 }));
+      var vl = svgEl("text", { x: cx(i), y: y(r.lost) - 5, class: "bar-value", "text-anchor": "middle", fill: "var(--sop-color-bad)" });
+      vl.textContent = money(r.lost); svg.appendChild(vl);
+      var ml = svgEl("text", { x: cx(i), y: BH - 6, class: "tick-text", "text-anchor": "middle" });
+      ml.textContent = D.month_names[r.month - 1]; svg.appendChild(ml);
+      var hit = svgEl("rect", { x: cx(i) - slot / 2, y: PT, width: slot, height: plotH, class: "mark-hit" });
+      hit.addEventListener("mousemove", function (e) {
+        showTip(e, D.month_names[r.month - 1] + " · Dryers: " + units2(r.unmet) + " unmet × $" + r.um + " = " + money2(r.lost) + " lost");
+      });
+      hit.addEventListener("mouseleave", hideTip); svg.appendChild(hit);
+    });
+    var wrap = document.getElementById("marginwrap"); wrap.innerHTML = ""; wrap.appendChild(svg);
+    var note = document.createElement("p"); note.className = "chartnote";
+    note.textContent = "0 lost margin in the other 9 months. Total at risk: " + money2(total) + ".";
+    wrap.appendChild(note);
+    wrap.addEventListener("click", function () { openMarginAtRiskRollup(); });
+  }
+
+  function drawUpsideVariance() {
+    var base = D.scenarios.base.summary.total_gross_margin, up = D.scenarios.upside.summary.total_gross_margin;
+    var BW = 460, BH = 70, GUT = 74, PR = 74, ROWH = 18, GAP = 4;
+    var hi = up * 1.02 || 1, plotW = BW - GUT - PR;
+    var x = function (v) { return GUT + (v / hi) * plotW; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + BW + " " + BH, role: "img" });
+    [["base", base], ["upside", up]].forEach(function (r, i) {
+      var sid = r[0], v = r[1], yy = i * (ROWH + GAP) + 2;
+      var lab = svgEl("text", { x: GUT - 8, y: yy + ROWH / 2 + 3.5, class: "bar-label", "text-anchor": "end" });
+      lab.textContent = SC_LABEL[sid]; svg.appendChild(lab);
+      var w = Math.max(0, x(v) - GUT);
+      if (w > 0.5) { var bar = svgEl("rect", { x: GUT, y: yy, width: w, height: ROWH, rx: 1 }); paintScenario(bar, sid); svg.appendChild(bar); }
+      var vl = svgEl("text", { x: GUT + w + 6, y: yy + ROWH / 2 + 3.5, class: "bar-value" });
+      vl.textContent = money(v); svg.appendChild(vl);
+      var hit = svgEl("rect", { x: 0, y: yy, width: BW, height: ROWH, class: "mark-hit" });
+      hit.addEventListener("mousemove", function (e) {
+        showTip(e, SC_LABEL[sid] + " gross margin " + money2(v) + (sid === "base" ? "" : "  (+" + money2(v - base) + " vs Base)"));
+      });
+      hit.addEventListener("mouseleave", hideTip); svg.appendChild(hit);
+    });
+    svg.appendChild(svgEl("line", { x1: GUT, y1: 0, x2: GUT, y2: BH - 10, class: "axis-line" }));
+    var wrap = document.getElementById("upsidewrap"); wrap.innerHTML = ""; wrap.appendChild(svg);
+    var dm = up - base, dr = D.scenarios.upside.summary.total_revenue - D.scenarios.base.summary.total_revenue;
+    var note = document.createElement("p"); note.className = "chartnote";
+    note.innerHTML = '<span class="delta delta--good">▲ ' + money(dm) + '</span> margin &middot; <span class="delta delta--good">▲ ' + money(dr) + '</span> revenue (context). Margin is the KPI.';
+    wrap.appendChild(note);
+    wrap.addEventListener("click", function () { openUpsideValueRollup(); });
+  }
+
+  buildHeadline();
+  buildFillBullets();
+  drawLoadCurve();
+  drawMarginMonths();
+  drawUpsideVariance();
+
+  // ---- rail --------------------------------------------------------------
+  var findings = [
+    { dot: "info", html: "Every panel reads live from the same 3 locked scenarios (mockups 1–3) — nothing here is a separate calculation." },
+    { dot: "warn", html: "Fill rate holds at 100% in Base and Upside; <strong>Constrained is the only scenario</strong> where the shared Assembly Line A limit actually costs shipped units." },
+    { dot: "bad", html: "<strong>Dryers absorb the entire constrained shortfall</strong> — the lowest-margin family among the three that compete for Assembly Line A hours in Apr/May/Dec." },
+    { dot: "info", html: "Upside puts the <strong>same load</strong> on Assembly Line A as Constrained (115% peak in April) but ships everything anyway — Upside assumes the gap gets topped up, Constrained does not." }
+  ];
+  var fh = document.getElementById("findings");
+  findings.forEach(function (f) {
+    var li = document.createElement("li"); li.className = "rail__item";
+    var d = document.createElement("span"); d.className = "dot dot--" + f.dot;
+    var t = document.createElement("span"); t.innerHTML = f.html;
+    li.appendChild(d); li.appendChild(t); fh.appendChild(li);
+  });
+  document.getElementById("assumptions").innerHTML =
+    "<strong>Bottleneck</strong> = Assembly Line A (heavy), the only resource that ever exceeds installed hours in any scenario — QA and Packaging stay under 93% throughout. " +
+    "<strong>\"Value unlocked\"</strong> compares gross margin, not revenue; revenue uplift is shown as context only. " +
+    "Every \"Why?\" opens the same real arithmetic mockup 3 uses — a rollup, or a direct link into a specific family/month's 5-step derivation.";
+
+  var th = document.getElementById("themetoggle");
+  th.addEventListener("click", function () {
+    var light = document.documentElement.getAttribute("data-theme") === "light";
+    document.documentElement.setAttribute("data-theme", light ? "dark" : "light");
+    th.textContent = light ? "Light" : "Dark";
+  });
+
+  document.getElementById("co").textContent = "S&OP Cockpit — " + D.company;
+  document.getElementById("prov").textContent =
+    D.families.length + " families · " + D.resources.length + " resources · every figure from the engine, via mockups/build_data.py";
+  document.getElementById("stamp").textContent = "Generated " + new Date(D.generated_at).toLocaleString();
+})();
+</script>
+</body>
+</html>
