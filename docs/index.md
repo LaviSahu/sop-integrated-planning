@@ -28,6 +28,9 @@ is.
 6. **[Roadmap](06-roadmap.md)** — multi-period build-ahead, Monte Carlo
    demand uncertainty, multiple resources per rationing pass, a real
    pre-S&OP reconciliation workflow.
+7. **[Method & Assumptions](07-method-and-assumptions.md)** — the honest
+   limitations, plus a fully worked example decision: "should we fund
+   the bottleneck?" — the margin recovered vs the cost of capacity.
 
 ## Ground truth
 

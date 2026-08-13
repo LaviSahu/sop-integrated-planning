@@ -75,4 +75,9 @@ every module downstream of `datagen.py` actually works with.
 | `FinanceSummary` | `finance.py` | `scenario`, `total_revenue`, `total_gross_margin`, `total_lost_revenue`, `total_lost_margin`, `ending_inventory_value`, `fill_rate` |
 | `Kpi` | `kpi.py` | `key`, `label`, `value`, `unit`, `context` |
 
+> `gross_margin` / `total_gross_margin` are legacy internal field names
+> meaning **contribution margin** (`shipped × (price − variable cost)`).
+> True gross margin would subtract allocated fixed overhead, which this
+> model deliberately does not allocate.
+
 Next: [Scenario Guide](05-scenario-guide.md).

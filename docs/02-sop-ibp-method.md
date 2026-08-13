@@ -36,8 +36,8 @@ not a separate finance exercise weeks later. `finance.py` is that
 extension in this repo: every `SupplyLine` (units) becomes a
 `FinanceLine` (dollars) in the same monthly bucket, and `kpi.py`'s
 catalog mixes operating KPIs (fill rate, utilization) with financial
-ones (gross margin, lost margin, upside value unlocked) in one flat
-dict — deliberately not two separate reports.
+ones (contribution margin, lost margin, upside value unlocked) in one
+flat dict — deliberately not two separate reports.
 
 ## Rough-Cut Capacity Planning (RCCP)
 

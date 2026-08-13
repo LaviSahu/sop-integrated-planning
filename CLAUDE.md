@@ -2,10 +2,11 @@
 
 **S&OP / IBP cockpit:** demand plan → Rough-Cut Capacity Planning → constrained supply plan → financial reconciliation → self-contained HTML dashboard comparing base, upside, and constrained scenarios.
 
-- **`SCOPE.md` is the current build scope (locked 2026-08-12) — read it first.** It supersedes the stdlib-only
-  positioning below: pandas/numpy are allowed in the data layer, the cockpit is an interactive what-if simulator,
-  and there is still **no optimizer**.
-- `DESIGN.md` is the behavioural contract — read before changing behaviour. `implementation-notes.md` logs deviations.
+- **Build scope (locked 2026-08-12):** pandas/numpy are allowed in the data layer, the cockpit is an interactive
+  what-if simulator, and there is still **no optimizer**. The public reference layer is `docs/` — start with
+  `docs/01-architecture.md`, then `docs/02-sop-ibp-method.md`; `docs/07-method-and-assumptions.md` states the honest limitations.
+- Behavioural contract: see `docs/01-architecture.md` (dashboard context contract) before changing behaviour.
+  `implementation-notes.md` logs deviations.
 - Dashboard stays hand-rolled HTML + inline SVG (no charting library, no CDN). Zero API keys. Build via `Makefile`;
   outputs in `output/`.
 

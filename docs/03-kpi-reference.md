@@ -71,19 +71,26 @@ $537.00 > Washers $328.00 > Dryers $297.00. Refrigerators and Washers
 are fully protected all year (0 unmet units); Dryers absorbs the entire
 shortfall.
 
-## Revenue, gross margin, lost revenue, lost margin (`finance.py`)
+## Revenue, contribution margin, lost revenue, lost margin (`finance.py`)
 
 ```
-revenue       = shipped_units * unit_price
-gross_margin  = shipped_units * unit_margin
-lost_revenue  = unmet_units   * unit_price
-lost_margin   = unmet_units   * unit_margin
+revenue             = shipped_units * unit_price
+contribution_margin = shipped_units * unit_margin      # unit_margin = unit_price − unit_variable_cost
+lost_revenue        = unmet_units   * unit_price
+lost_margin         = unmet_units   * unit_margin
 ```
+
+> **Terminology note:** `unit_margin` is `price − variable cost`, so the
+> figure below is *contribution margin* by the standard managerial-
+> accounting definition — it excludes the allocated fixed overhead that
+> true gross margin subtracts. The code's internal field name is the
+> legacy `gross_margin`; it means contribution margin. A finance
+> reviewer will read it correctly once labelled this way.
 
 | Metric | Base | Upside | Constrained |
 |---|---|---|---|
 | Revenue | $127,687,935 | $148,472,953 | $147,221,512 |
-| Gross margin | $52,203,890 | $60,625,548 | $60,093,820 |
+| Contribution margin | $52,203,890 | $60,625,548 | $60,093,820 |
 | Lost revenue | $0 | $0 | $1,251,441 |
 | Lost margin | $0 | $0 | $531,728 |
 

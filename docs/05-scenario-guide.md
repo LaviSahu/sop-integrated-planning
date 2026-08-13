@@ -19,7 +19,7 @@ confirms this is feasible before anyone asks "what if").
 
 **Real numbers**: 100.00% fill rate every month, every family. Peak
 resource utilization 94.48% (Assembly Line A) — feasible with headroom,
-by construction. $127,687,935 revenue, $52,203,890 gross margin,
+by construction. $127,687,935 revenue, $52,203,890 contribution margin,
 $8,421,000 December ending inventory.
 
 ## Upside
@@ -44,7 +44,7 @@ next-closest resource, Test/QA, peaks at 95.34%, safely under 100%. This
 >100% reading is the emergent proof the brief requires: nothing in
 `kpi.py` or `capacity.py` asserts a bottleneck exists, it falls out of
 seasonality × uplift × hours-per-unit arithmetic. $148,472,953 revenue,
-$60,625,548 gross margin — $8,421,000 December ending inventory
+$60,625,548 contribution margin — $8,421,000 December ending inventory
 (unchanged from Base: the model doesn't build ahead in either
 direction, see Deviation #4 in `implementation-notes.md`).
 
@@ -81,7 +81,7 @@ This is exactly equal to Constrained's lost margin, by construction —
 not a coincidence, and not two separate models that happen to agree.
 Upside and Constrained ship against the *same* uplifted demand; the
 only difference is whether the capacity gap RCCP identified gets funded.
-Every unit of gross margin Constrained fails to capture is, definitionally,
+Every unit of contribution margin Constrained fails to capture is, definitionally,
 margin Upside *did* capture by paying for the missing hours. This is the
 one number that turns "we have a bottleneck" into "here is what the
 bottleneck is worth in dollars, this year, at this seasonality" — the
