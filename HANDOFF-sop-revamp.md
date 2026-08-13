@@ -1,9 +1,9 @@
-# HANDOFF — S&OP Cockpit built: approved mockups assembled, verified, shipped
+# HANDOFF — S&OP Cockpit: levers wired (client-side recompute), shipped
 
-**Date:** 2026-08-13 (supersedes the earlier implementation-GO version).
+**Date:** 2026-08-13 (supersedes the mockups-assembled version).
 **Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH `github-lavisahu`).
-**Status:** implementation **DONE** — commit `30e84c3`, pushed. Working tree clean (one untracked exploratory script).
-**Approval:** Lavi reviewed the open dashboard and said **"looks good"** (2026-08-13) after a walkthrough of the headline → presets → drill-down → rollups → waterfall narrative.
+**Status:** levers wired — **DONE**. JS engine port validated 0-diff vs the Python engine (golden gate). Working tree has the changes (uncommitted — commit on Lavi's word).
+**Approval:** the mockup-verification "looks good" carried forward; this increment adds the live lever sandbox.
 
 ---
 
@@ -20,8 +20,9 @@ The built cockpit is `make dashboard` → `output/dashboard.html` — one self-c
 | Phase | State |
 |---|---|
 | Mockups 1–5 | done, approved |
-| **Implementation** | **DONE** — `30e84c3`, pushed |
-| Verification | 83/83 tests, click-sim 28/28, golden-fixture 0-diff |
+| Implementation (mockups assembled) | DONE — `30e84c3`, pushed |
+| **Levers wired (client-side recompute)** | **DONE** — this increment, uncommitted |
+| Verification | 86/86 tests, JS-port golden gate 0-diff, browser interaction tests pass |
 
 **Open questions that were pending — both resolved:**
 1. **Planner override / HITL** → **Deferred** (Lavi: "thats fine we will build and then do new version later"). Levers are the single edit path; override belongs to the new version.
@@ -71,10 +72,32 @@ The built cockpit is `make dashboard` → `output/dashboard.html` — one self-c
 
 ## Possible next steps (do not start without Lavi)
 
-1. **New version / redesign** — Lavi's deferred ask.
+1. **New version / redesign** — Lavi's deferred ask (and the React/Tailwind rewrite conversation; levers sliders were ported as vanilla adaptive styling, no framework).
 2. **Planner override / HITL** — SCOPE §8, deferred.
 3. **Stage 4 gap-to-plan** — needs target input in `families.json` (SCOPE §8b: "cannot be claimed until a target input exists"). New input data, not just a chart.
-4. **Levers wired** — client-side recompute (SCOPE §2 row 7); currently a static shell. Would need the JS engine port validated against the golden fixture.
+4. **SCOPE §8b rationing correction** — the engine still sorts by raw `unit_margin`; §8b wants contribution-per-bottleneck-hour. Deliberately NOT done (it changes the golden fixture). Separate change with its own regeneration + test.
+
+## Levers-wiring increment (this session)
+
+**What shipped:**
+- **JS engine port** (`mockups/engine-port.js`, dual browser/CommonJS): a faithful port of demand→capacity→constrain→finance. **Verified 0-diff vs the Python engine** for the identity lever set AND a representative lever mutation (volume +10%, RES-LINEA hours +5%, FAM-DRY price +10%/VC −3%) — the golden gate. Two hard traps solved: Python banker's rounding (pyRound, decimal-string) and stale `unit_margin` under price/VC levers.
+- **Live lever panel** (`mockups/dashboard-app.js` §6): volume multiplier, seasonality shift (±months), per-family uplift, available hours/resource, unit price Δ, unit VC Δ, opening inventory Δ, and the **rationing-rule selector** (throughput-per-constraint ▸ fair-share ▸ strategic-priority). All others stay disabled-with-note (SCOPE §4 honesty: no expressible engine mutation).
+- **Custom scenario replaces the focus column**: dragging any lever recomputes client-side, sets `focus="custom"`, re-renders the KPI tiles, small-multiples grid, drill-down grid, bullets, families, summary table, and the 5-step provenance modal works for custom cells. A "Custom (levers)" preset (S4) appears; brand fill pattern + legend entry.
+- **Rationing rules**: throughput-per-constraint = the shipped rule (descending unit margin, matches fixture). Fair-share = proportional demand split (new arithmetic). Strategic-priority = margin-tiers (coincides with throughput when priority=margin — honest limitation, documented). Only throughput is golden-tested (it's what Python encodes); the new rules are tested against hand-derived expectations.
+- **Reproducible build**: `mockups/splice.py` regenerates `dashboard.py::_TEMPLATE` from the canonical mockups (`dashboard.css` / `dashboard-body.html` / `engine-port.js` + `dashboard-app.js`). **Idempotent** (verified). `make dashboard` rebuilds; `make test` (86 tests incl. the new node-backed `tests/test_js_port.py`) stays green.
+- **Custom semantics**: custom defaults to CONSTRAINED (upside uplift applied, capacity held) so "no levers moved" == constrained — matches the first-render view. This was a real bug caught in verification (custom initially ran on base demand).
+
+**Verification:** 86/86 tests (83 engine + 3 JS-port gates), headless Chrome interaction tests (volume/seasonality/uplift/price/VC/opening/hours recompute, ration-rule switch, custom cell modal, full reset restores constrained, no JS errors), self-containment grep 0 external refs.
+
+**Editorial note for Lavi:** `mockups/assemble_dashboard.py` is stale/untracked — the real build path is `splice.py` + `make dashboard`. Not in the chain, ignore it.
+
+---
+
+## Suggested skills
+
+- **`impeccable`** (project skill at `.claude/skills/`) — use for any frontend design/UX refinement of the dashboard (the lever panel, adaptive slider styling, custom-scenario presentation). The vanilla adaptive-slider look was ported from watermelon-ui ideas; run this skill before further visual polish.
+- **`update-config`** — only if wiring new hooks/permissions into `~/.claude/settings.json`; not needed for repo work.
+- No `dataviz`/`linkedin-*`/`spark`/`brief`/`terse` relevance — this is a single-repo engineering task. Run `skill-audit` after any skill edit (CLAUDE.md requires it exit 0).
 
 ---
 
