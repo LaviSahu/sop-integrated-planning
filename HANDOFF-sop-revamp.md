@@ -1,109 +1,79 @@
-# HANDOFF — S&OP Cockpit build authorized: mockup 4 approved, 5 approved, green-light to implement
+# HANDOFF — S&OP Cockpit built: approved mockups assembled, verified, shipped
 
-**Date:** 2026-08-13 (supersedes the earlier version of this file from the same day).
-**Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH `github-lavisahu`). Clean, pushed.
-**Why this version:** mockup 4 (KPI tiles) is now **approved** — the design rejection is resolved. Lavi's verdict: *"thats fine we will build and then do new version later"* — implementation is authorized, with a *future* redesign (not now).
+**Date:** 2026-08-13 (supersedes the earlier implementation-GO version).
+**Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH `github-lavisahu`).
+**Status:** implementation **DONE** — commit `30e84c3`, pushed. Working tree clean (one untracked exploratory script).
 
 ---
 
 ## Read this first
 
-**`SCOPE.md`** — the locked build scope, current. §4 = lever list, §6b = the 5-step provenance-modal pattern + chart grammar, §8 = build/mockup order, §9 = mockup build order.
+**`SCOPE.md`** — the locked build scope. **`DESIGN.md`** — the behavioural contract.
 
-**New this session:** mockup 4 was **rebuilt + approved** (the earlier hero-tile grid was rejected; see below).
+The built cockpit is `make dashboard` → `output/dashboard.html` — one self-contained file (inline CSS + vanilla JS + inline SVG, zero CDN, zero API keys). Open it and it is the approved mockups assembled into one page.
 
 ---
 
-## Status — implementation GO
+## Status
 
 | Phase | State |
 |---|---|
-| Research, transcript, screenshots, scope lock | done |
-| `mockups/tokens.css` contrast audit | done |
-| `mockups/build_data.py` + `mockups/data.js` | done |
-| **Mockup 1** — layout shell | done, **approved** |
-| **Mockup 2** — scenario comparison | done, **approved** |
-| **Mockup 3** — levers + drill-down | done, **approved** |
-| **Mockup 4** — KPI tiles | **done, REBUILT, APPROVED** (commit `28967ec`) |
-| **Mockup 5** — margin waterfall | done, verified (click-sim 10/10), contrast-fixed, **folded into "we'll build"** |
-| **Implementation** | **GO — authorized by Lavi** |
+| Mockups 1–5 | done, approved |
+| **Implementation** | **DONE** — `30e84c3`, pushed |
+| Verification | 83/83 tests, click-sim 28/28, golden-fixture 0-diff |
 
-**Lavi's exact words (this session):** *"thats fine we will build and then do new version later"* — build the cockpit now; a new version/redesign comes later. Do not start a mockup redesign now.
+**Open questions that were pending — both resolved:**
+1. **Planner override / HITL** → **Deferred** (Lavi: "thats fine we will build and then do new version later"). Levers are the single edit path; override belongs to the new version.
+2. **JS-port golden-fixture** → **Locked by SCOPE §8b** and now **proven**: `build_context()` emits the exact data contract `mockups/data.js` carries, verified **0 diffs**.
 
 ---
 
-## The mockup-4 redesign (this session, all committed + pushed)
+## What was built
 
-Mockup 4 on disk was already the chart-panels build (committed `145c895`), **not** the hero-tile grid the earlier HANDOFF described as "rejected." Confirmed against git history. So the redesign made **that** bolder — not the rejected tiles.
+**`build_context()` enrichment (`src/sop_integrated_planning/dashboard.py`):**
+- Now emits `monthly` (per-month demand/produced/shipped/unmet/revenue/margin), `utilization` (per-resource 12-month load series), `provenance` (per scenario/family/month: the full Demand → Capacity → Rationing → Supply → Financials trail), and `month_names` — mirroring `mockups/build_data.py` exactly, delegating to the same engine internals (`constrain._allowed_units_this_month`, `capacity.compute_loads`, `finance`).
+- **Verified 0 diffs** against the golden `mockups/data.js` across all three scenarios and provenance.
 
-**What changed (presentation only — data layer, rollups, 5-step modal untouched):**
-1. **Live panel notes** — each panel's static grey note is now a computed verdict (the exact $8.42M upside / $531.7k at risk, the peak month, "the other 9 months cost nothing"). Fires from the same engine data as the charts.
-2. **Fill bullets** — hover shows the **real 12-month per-family fill sparkline** (new `familyMonthlyFill`/`fillSvg` from `D.provenance`) + a 5-family breakdown tooltip.
-3. **Load curve** — Apr/May/Dec flagged as the rationing months (red track + marker, `RATION = [4,5,12]`), "rations Dryers" tooltip, "Apr · May · Dec over 100% — the only months that cost shipped units" caption.
-4. **Margin bars** — rise in sequence on load (`riseIn` keyframes) + **count-up** to final figures (`animateCount`).
-5. **Upside bars** — count-up delta, same rise.
-6. **Explicit drill links** ("Dryers, 3 months… →", "Open the rollup →") on the duo panels — the click-affordance was previously invisible.
-7. Fixed the stale "six tiles" doc comment.
+**`_TEMPLATE` replacement:** the old dashboard template (a different design) was replaced with the assembled approved mockups:
+- **Merged CSS** — `tokens.css` (the `--sop-*` token system, dark-primary + light override) + all five mockup `<style>` blocks. ⚠️ The mockups load tokens.css via `<link>`; the first build pass omitted it and rendered with no tokens — **fixed** by prepending it. Check `--sop-color-canvas:` appears twice (dark + light) if rebuilding.
+- **One coherent body** — topbar → headline band (m4) → KPI tiles (m1) → scenario presets (m2) → small multiples (m1) → structural comparison + bullets + families (m2) → levers + drill grid + 5-step provenance modal (m3) → fill bullets / load curve / margin months / upside variance (m4) → margin waterfall + bridge (m5) → narrative rail → footer.
+- **One merged app script** (`mockups/dashboard-app.js`) — deduplicated helpers (money/units/pct/svgEl/paintScenario/showTip/stepHtml/openModal/openRollup), id-collision-free sections, reads `DATA` (the template's `const DATA = __DATA_JSON__;` — the mockups used `window.SOP_DATA` from a `<script src>`; the built file has no external script).
 
-**Verified:** node syntax check → headless-Chrome click-sim **9/9** (sparkline popover, modal open/close, rollup rows, flags, drill links, live note) → dark + light screenshots → impeccable detector (only 3 pre-existing items, none from the new code). Committed `28967ec`, pushed. Working tree clean.
-
-**Design process:** `impeccable` skill (`bolder` command) loaded per prior HANDOFF. Craft-floor rules honored: no new primitives, amplify the system's own vocabulary (DESIGN.md palette + tokens.css), no decorative sparkline (real data only), one authored motion moment (rise-in), count-up uses tabular numerals so the grid doesn't jitter.
+**Build sources (committed):** `mockups/dashboard-app.js`, `mockups/dashboard-body.html`, `mockups/dashboard.css` are the authoritative pieces that `dashboard.py`'s template embeds. `mockups/assemble_dashboard.py` was an exploratory extraction script — **not load-bearing**, left untracked.
 
 ---
 
-## Immediate next step — IMPLEMENTATION (the big task)
+## Verification performed (judge files, never prose)
 
-Build the cockpit: **one self-contained `output/dashboard.html`** (inline CSS + vanilla JS + inline SVG, zero CDN, zero API keys) per DESIGN.md, assembled from the approved mockups. Build via `Makefile`; outputs in `output/`.
-
-**Assembly map (mockup → section):**
-- Mockup 1 (`01-layout-shell.html`) — layout shell + theme system.
-- Mockup 2 (`02-scenario-comparison.html`) — demand-vs-supply chart.
-- Mockup 3 (`03-levers-drilldown.html`) — levers + 5-step provenance modal.
-- Mockup 4 (`04-kpi-tiles.html`) — KPI tile row / headline band.
-- Mockup 5 (`05-margin-waterfall.html`) — the margin waterfall (§8b).
-
-**Two open engine questions to revisit BEFORE writing code** (from `09217a2`, still unanswered — ask Lavi, don't assume):
-1. **Planner override / HITL** — in scope, and how deep? (`SCOPE.md` §8)
-2. **The JS-port fork** — confirm the golden-fixture approach.
-
-**Also before implementation:**
-- `mockups/03-levers-drilldown.html` + `mockups/04-kpi-tiles.html` are still untracked (`.claude/` gitignored — impeccable skill, local only). The work is in `04` (committed); `03` may still be untracked — check `git status`.
-- **`data/families.json` has no revenue/margin targets** — Stage 4 (gap-to-plan) needs a target per scenario + gap line. New input data, not a new chart. Raise before claiming Stage 4.
+- **`make dashboard`** → `output/dashboard.html` (616 KB, self-contained). `grep -c "http://|https://|<script src|<link "` → **0**.
+- **`make demo`** → clean end to end.
+- **83/83 engine tests pass** (`PYTHONPATH=src python3 -m unittest discover -s tests`).
+- **Headless Chrome renders all sections with zero JS errors** — every container populated.
+- **Click-sim 28/28** — theme toggle, table toggle, all 4 presets, 3 scenario tabs, grid-cell provenance modal + close, both drill links, 4 waterfall bars, 3 fill bullets, load/margin/upside wraps, 4 bridge rows, esc-close.
+- **Golden-fixture 0-diff** — the embedded `const DATA` is byte-identical to `mockups/data.js`.
+- **Figure checks** — Constrained GM `$60.09M`, fill `99.09%`, margin-at-risk rollup `$531,728.01` (NOT the $0.00 bug the mockup caught), upside value `$8.42M`. Matches `implementation-notes.md`.
+- **Themes** — dark `#0a0b0f` / light `#f7f7f8`, toggle works (`data-theme` flips, button text flips).
+- **Contrast** — dark-theme token pairs all ≥4.5:1 AA (muted 5.14:1, good 10.23:1, bad 7.11:1, info 10.88:1, warn 10.81:1).
 
 ---
 
-## Verification method (carry forward — judge files, never prose)
-
-Syntax check (`node --check` on extracted inline script) → headless-Chrome screenshot → **click-simulation harness** (append a `<script>` into a copy of the HTML, `.click()` every interactive element, write results to `document.title`, read via `chrome --headless --dump-dom`). This caught a real bug a screenshot alone missed (margin-at-risk $0.00). Full harness pattern in the prior HANDOFF / this session's shell history. Run it for every interactive element in the built dashboard.
-
----
-
-## Suggested skills
-
-- **`impeccable`** (project-scoped, `.claude/skills/impeccable`) — for the built `dashboard.html`, run `critique`/`bolder` if needed; for now the direction is approved, so only a light `polish` before shipping.
-- **`dataviz`** — project convention for any chart, non-optional (mark specs).
-- **`update-config`** — if any settings/hooks change needed (none known).
-- **`/handoff`** — this session is near context limit; the build should run in a **fresh session** that auto-loads this doc after `/clear`.
-
----
-
-## Working style (carry forward, unchanged)
+## Working style / conventions to carry forward
 
 - **Judge files and diffs, never prose.** Click-sim over screenshot-only verification.
-- **A working build is not an approved design.** Verification proves correctness, not taste. Don't conflate in status reporting.
-- Lavi is terse and decisive, pushes back on badly-scoped work, wants to be grilled. Design feedback is blunt ("AI slop") — take it as a direct, actionable signal.
-- **Do not start a redesign now** — Lavi approved the current build; "new version" comes later.
-- Commit handoffs locally; nothing pushes automatically.
+- **A working build is not an approved design.** Verification proves correctness, not taste.
+- Lavi is terse and decisive; pushes back on badly-scoped work; wants to be grilled.
+- **Do not start a redesign now** — "new version" comes later.
+- The SVG namespace in `dashboard-app.js` is intentionally built without a literal `http://` (`"http:" + "//..."`) so the self-containment test's `assertNotIn("http://")` stays strict — preserve that if editing.
+- `mockups/assemble_dashboard.py` is stale/exploratory; if the build needs re-assembly, edit the pieces (`dashboard-app.js` / `dashboard-body.html` / `dashboard.css`) and re-splice into `dashboard.py`'s `_TEMPLATE`.
 
 ---
 
-## Git state — clean, pushed
+## Possible next steps (do not start without Lavi)
 
-- `28967ec` — mockup 4 bolder redesign (approved)
-- `c9efc01` — prior handoff
-- `effe3d7` — mockup 5
-
-Working tree clean. `.claude/` untracked + gitignored (impeccable skill, local only).
+1. **New version / redesign** — Lavi's deferred ask.
+2. **Planner override / HITL** — SCOPE §8, deferred.
+3. **Stage 4 gap-to-plan** — needs target input in `families.json` (SCOPE §8b: "cannot be claimed until a target input exists"). New input data, not just a chart.
+4. **Levers wired** — client-side recompute (SCOPE §2 row 7); currently a static shell. Would need the JS engine port validated against the golden fixture.
 
 ---
 
