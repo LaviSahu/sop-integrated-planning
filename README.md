@@ -27,6 +27,17 @@ Supply-chain practitioners and anyone who has sat in an S&OP meeting where sales
 
 The full interactive cockpit is served from this repo on GitHub Pages — no clone, no `pip install`, no build. Just open the link and drag a lever; the numbers recompute in your browser. (Built from the self-contained `docs/dashboard.html`.)
 
+*The live link is the demo — the screenshots below are static captures. Everything they show recomputes when you drag a lever.*
+
+| | | |
+|---|---|---|
+| **Headline + KPIs** — the $531,728 takeaway in one view: revenue, gross margin, the one constraint | **Demand vs shipped** — Base/Upside/Constrained on one shared scale | **Structural comparison** — levels + variance vs Base |
+| ![Headline](docs/img/SCR-20260813-sbto.png) | ![Demand vs shipped](docs/img/SCR-20260813-sbyr.png) | ![Structural comparison](docs/img/SCR-20260813-sccr.png) |
+| **Where the plan is tight** — bullet graphs against a derived reference | **Where the margin actually moves** — gross margin by family, and what rationing takes off it | **Levers** — drag to recompute client-side, no Python round-trip |
+| ![Where the plan is tight](docs/img/SCR-20260813-scga.png) | ![Where the margin moves](docs/img/SCR-20260813-scie.png) | ![Levers](docs/img/SCR-20260813-sclg.png) |
+| **Click any number** — every cell drills to its Demand → Capacity → Rationing → Supply → Financials arithmetic | **Bottleneck resource** — Assembly Line A peaks at 115% in Apr, rationing Dryers in Apr · May · Dec | **Margin bridge** — base → +upside lift → −constrained penalty → realized |
+| ![Drill-down grid](docs/img/SCR-20260813-scpd.png) | ![Bottleneck load](docs/img/SCR-20260813-scrj.png) | ![Margin bridge](docs/img/SCR-20260813-scua.png) |
+
 ## 60-second quickstart
 
 ```bash
