@@ -21,9 +21,11 @@ Supply-chain practitioners and anyone who has sat in an S&OP meeting where sales
 
 ---
 
-## See it
+## See it live — no install
 
-The built `output/dashboard.html` is fully self-contained — open it and drag a lever; the numbers recompute client-side. *(A static screenshot is a TODO — headless capture of the dark IBCS canvas renders black on some macOS setups; open the file to see it live.)*
+**[Open the dashboard →](https://lavisahu.github.io/sop-integrated-planning/dashboard.html)**
+
+The full interactive cockpit is served from this repo on GitHub Pages — no clone, no `pip install`, no build. Just open the link and drag a lever; the numbers recompute in your browser. (Built from the self-contained `docs/dashboard.html`.)
 
 ## 60-second quickstart
 
