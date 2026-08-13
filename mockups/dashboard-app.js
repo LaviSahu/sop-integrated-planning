@@ -15,7 +15,7 @@
   // not exist in the built dashboard.
   var D = typeof DATA !== "undefined" ? DATA : window.SOP_DATA;
   var SC = ["base", "upside", "constrained"];
-  var SC_LABEL = { base: "Base", upside: "Upside", constrained: "Constrained" };
+  var SC_LABEL = { base: "Base", upside: "Upside", constrained: "Constrained", custom: "Custom (levers)" };
   var focus = "constrained";
   var MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -57,6 +57,7 @@
   // Scenario identity = fill pattern, never hue (SCOPE §8b).
   function paintScenario(el, sid) {
     if (sid === "constrained") el.setAttribute("fill", "url(#hatch)");
+    else if (sid === "custom") el.setAttribute("fill", "var(--sop-color-brand)");
     else if (sid === "upside") el.setAttribute("fill", "var(--sop-color-ink-soft)");
     else {
       el.setAttribute("fill", "var(--sop-color-chart-actual)");
@@ -73,6 +74,9 @@
       el.setAttribute("stroke-width", "1");
     } else if (sid === "constrained") {
       el.setAttribute("fill", "url(#hatch)");
+    } else if (sid === "custom") {
+      el.setAttribute("fill", "var(--sop-color-brand)");
+      el.setAttribute("fill-opacity", "0.85");
     } else if (sid === "upside") {
       el.setAttribute("fill", "var(--sop-color-ink-soft)");
     } else {
@@ -106,7 +110,16 @@
     var s = D.scenarios[sid], m = s.monthly;
     var unmet = m.reduce(function (a, r) { return a + r.unmet; }, 0);
     var demand = m.reduce(function (a, r) { return a + r.demand; }, 0);
-    var util = s.utilization[D.bottleneck.resource_id];
+    // For custom, use the scenario's own peak-utilization resource (the
+    // recompute may have moved the bottleneck); else the shipped one.
+    var utilKey = D.bottleneck.resource_id;
+    if (sid === "custom") {
+      utilKey = Object.keys(s.utilization).reduce(function (best, rid) {
+        var pk = Math.max.apply(null, s.utilization[rid].map(function (x) { return x.utilization_pct; }));
+        return pk > best.pk ? { rid: rid, pk: pk } : best;
+      }, { rid: utilKey, pk: 0 }).rid;
+    }
+    var util = s.utilization[utilKey];
     return {
       revenue: s.summary.total_revenue,
       margin: s.summary.total_gross_margin,
@@ -120,6 +133,11 @@
     };
   }
   var A = { base: agg("base"), constrained: agg("constrained"), upside: agg("upside") };
+  // custom starts as constrained (no levers touched); becomes a real engine
+  // recompute the moment any wired lever moves (applyLeversAndRecompute).
+  D.scenarios.custom = D.scenarios.constrained;
+  D.provenance.custom = D.provenance.constrained;
+  A.custom = agg("custom");
 
   function resName(rid) { return D.resources.filter(function (r) { return r.id === rid; })[0].name; }
   function lineA() { return D.scenarios.constrained.utilization[D.bottleneck.resource_id]; } // 12 months
@@ -167,7 +185,8 @@
   function buildTiles() {
     var base = D.scenarios.base.summary,
         up = D.scenarios.upside.summary,
-        con = D.scenarios.constrained.summary;
+        con = D.scenarios[focus].summary || D.scenarios.constrained.summary;
+    var isCustom = focus === "custom";
     var tiles = [
       { label: "Revenue", value: money(con.total_revenue), delta: (con.total_revenue / base.total_revenue - 1) * 100,
         basis: "vs Base " + money(base.total_revenue), why: "shipped units × unit price" },
@@ -177,9 +196,11 @@
         deltaUnit: "pp", deltaDp: 2,
         basis: "vs Base " + pct(base.fill_rate * 100, 2), why: "shipped ÷ demanded, full year" },
       { label: "Lost margin", value: money(con.total_lost_margin), delta: null, goodIsUp: false,
-        basis: "Base and Upside both " + money(0), why: "unmet units × unit margin" }
+        basis: isCustom ? "your custom lever scenario" : "Base and Upside both " + money(0),
+        why: "unmet units × unit margin" }
     ];
     var host = document.getElementById("tiles");
+    host.innerHTML = "";
     tiles.forEach(function (t) {
       var el = document.createElement("div"); el.className = "tile";
       var lab = document.createElement("div"); lab.className = "tile__label"; lab.textContent = t.label;
@@ -348,7 +369,9 @@
     { id: "S0", key: "base", name: "Base", q: "What does the consensus plan look like?" },
     { id: "S1", key: "constrained", name: "Constrained", q: "What can we actually make?" },
     { id: "S2", key: "upside", name: "Upside", q: "What if demand lands high?" },
-    { id: "S3", key: null, name: "Invest", q: "Is relieving the bottleneck worth it?",
+    { id: "S3", key: "custom", name: "Custom", q: "Build it with the levers below.",
+      tag: "levers" },
+    { id: "S4", key: null, name: "Invest", q: "Is relieving the bottleneck worth it?",
       tag: "not in engine", disabled: true }
   ];
   function buildPresets() {
@@ -365,7 +388,13 @@
       var q = document.createElement("p"); q.className = "preset__q"; q.textContent = p.q;
       b.appendChild(id); b.appendChild(nm); b.appendChild(q);
       if (!p.disabled) b.addEventListener("click", function () {
-        focus = p.key; renderComparison();
+        if (p.key === "custom") {
+          // Custom recomputes from current levers; falls back to constrained
+          // if no lever is dirty.
+          applyLeversAndRecompute();
+        } else {
+          focus = p.key; renderComparison();
+        }
         Array.prototype.forEach.call(presetHost.children, function (c, i) {
           c.setAttribute("aria-pressed", String(PRESETS[i].key === focus));
         });
@@ -535,14 +564,16 @@
       d.textContent = h; host.appendChild(d);
     });
     var recon = {};
-    SC.forEach(function (s) {
+    var scenariosIncluding = SC.slice();
+    if (D.scenarios.custom) scenariosIncluding.push("custom");
+    scenariosIncluding.forEach(function (s) {
       recon[s] = {};
       D.scenarios[s].reconciliation.forEach(function (r) { recon[s][r.family_id] = r; });
     });
     var fams = D.scenarios.base.reconciliation.slice().sort(function (a, b) {
       return b.gross_margin - a.gross_margin;
     });
-    var maxGM = Math.max.apply(null, SC.map(function (s) {
+    var maxGM = Math.max.apply(null, scenariosIncluding.map(function (s) {
       return Math.max.apply(null, D.scenarios[s].reconciliation.map(function (r) { return r.gross_margin; }));
     }));
     var maxLost = Math.max.apply(null, D.scenarios[focus].reconciliation.map(function (r) { return r.lost_margin; })) || 1;
@@ -652,50 +683,86 @@
     return r.name + " " + units(r.monthly_available_hours) + " h/mo installed";
   }).join(" · ");
 
+  // Live lever state. Each wired lever has a `key` (engine override) and a
+  // `read` function that renders its current value; dragging fires
+  // recomputeScenario and re-renders the focused view as the custom scenario.
+  // A lever is ONLY wired when it has an expressible engine mutation
+  // (SCOPE §4: "changing it must alter a named term in a formula we can
+  // display, or it does not ship"). Everything else stays disabled-with-note.
+  var LEVER_STATE = {};
+
+  function readLeverValue(key) {
+    return LEVER_STATE[key] !== undefined ? LEVER_STATE[key] : 0;
+  }
+
   var TIER1 = [
     { group: "Demand", levers: [
-      { label: "Volume multiplier (global)", unit: "%", note: "Base = 0% (no change)" },
-      { label: "Per-family uplift %", unit: "%", note: "Upside/Constrained already apply each family's own upside_uplift_pct — this lever would override it" },
-      { label: "Seasonality shift", unit: "± months", note: "Base = 0 (no shift)" }
+      { key: "volMult", label: "Volume multiplier (global)", unit: "%",
+        min: -50, max: 50, step: 1,
+        note: "Scales every family's base monthly demand by (1 + pct/100). Alters the Demand step's base units." },
+      { key: "seasonShift", label: "Seasonality shift", unit: "months",
+        min: -6, max: 6, step: 1, discrete: true,
+        note: "Circular-shifts the base monthly demand series by ±N months. Alters the Demand step's base series." },
+      { key: "familyUplift", label: "Per-family uplift %", unit: "%",
+        min: 0, max: 50, step: 1, perFamily: true,
+        note: "Overrides each family's own upside_uplift_pct for the custom scenario. Alters the Demand step's uplift." }
     ]},
     { group: "Supply", levers: [
-      { label: "Available hours per resource", unit: "h/mo", note: resourceCaption },
-      { label: "Overtime hours", unit: "h/mo", note: "Base = 0 (no overtime modeled)" }
+      { key: "hours", label: "Available hours per resource", unit: "h/mo",
+        min: 0, max: 2, step: 0.01, perResource: true, mode: "factor",
+        note: "Scales each resource's monthly_available_hours by this factor. Alters the Capacity step's installed hours." },
+      { key: "overtime", label: "Overtime hours", unit: "h/mo",
+        disabled: true,
+        note: "Not modeled — would require an engine-side overtime model (adds hours to effective capacity with a premium cost)." }
     ]},
     { group: "Policy", levers: [
-      { label: "Safety stock", unit: "weeks of cover", note: "Not in the current data model — would need a new input" },
-      { label: "Rationing rule", unit: "throughput-per-constraint ▸ fair-share ▸ strategic-priority", note: "Engine currently hardcodes throughput-per-constraint (descending unit margin) — see step 3 in any drill-down" }
+      { key: "rationRule", label: "Rationing rule", unit: "",
+        discrete: true, options: ["throughput-per-constraint", "fair-share", "strategic-priority"],
+        note: "How scarce hours are allocated when a resource is over capacity. Throughput-per-constraint = the shipped engine rule (descending unit margin); fair-share and strategic-priority are new arithmetic." }
     ]},
     { group: "Financial", levers: [
-      { label: "Unit price Δ%", unit: "%", note: "Base = 0% (no change)" },
-      { label: "Unit variable cost Δ%", unit: "%", note: "Base = 0% (no change)" }
+      { key: "priceDelta", label: "Unit price Δ%", unit: "%",
+        min: -50, max: 50, step: 1, perFamily: true,
+        note: "Scales each family's unit_price. Alters the Financial step's price AND the rationing sort key (unit_margin)." },
+      { key: "vcDelta", label: "Unit variable cost Δ%", unit: "%",
+        min: -50, max: 50, step: 1, perFamily: true,
+        note: "Scales each family's unit_variable_cost. Alters the Financial step's VC AND the rationing sort key." }
     ]},
     { group: "Inventory", levers: [
-      { label: "Opening inventory Δ%", unit: "%", note: "Base = 0% (no change)" }
+      { key: "openingDelta", label: "Opening inventory Δ%", unit: "%",
+        min: -50, max: 50, step: 1, perFamily: true,
+        note: "Scales each family's opening_inventory_units. Alters the Supply step's opening balance." }
     ]}
   ];
   var TIER2 = [
     { group: "Demand (advanced)", levers: [
-      { label: "Forecast bias %", unit: "%", note: "Not in the current data model" },
-      { label: "Per-family MAPE override", unit: "%", note: "Stage-4 residual-cone input — SCOPE §5, not yet in this data" }
+      { key: "bias", label: "Forecast bias %", unit: "%", disabled: true, note: "Not in the current data model" },
+      { key: "mape", label: "Per-family MAPE override", unit: "%", disabled: true, note: "Stage-4 residual-cone input — SCOPE §5, not yet in this data" }
     ]},
     { group: "Supply (advanced)", levers: [
-      { label: "Yield / scrap %", unit: "%", note: "Not modeled — engine assumes 100% yield" },
-      { label: "Minimum lot size", unit: "units", note: "Not modeled" }
+      { key: "yield", label: "Yield / scrap %", unit: "%", disabled: true, note: "Not modeled — engine assumes 100% yield" },
+      { key: "lot", label: "Minimum lot size", unit: "units", disabled: true, note: "Not modeled" }
     ]},
     { group: "Policy (advanced)", levers: [
-      { label: "Backorder vs lost sale", unit: "per family", note: "Engine currently always treats unmet demand as a lost sale — no backorder carry" },
-      { label: "Build-ahead horizon", unit: "months", note: "Not modeled — supply never exceeds the current month's own demand" }
+      { key: "backorder", label: "Backorder vs lost sale", unit: "per family", disabled: true, note: "Engine currently always treats unmet demand as a lost sale — no backorder carry" },
+      { key: "buildahead", label: "Build-ahead horizon", unit: "months", disabled: true, note: "Not modeled — supply never exceeds the current month's own demand" }
     ]},
     { group: "Financial (advanced)", levers: [
-      { label: "Inventory carrying %", unit: "%", note: "Not modeled" },
-      { label: "Overtime premium %", unit: "%", note: "Not modeled — no overtime lever yet" },
-      { label: "Stockout penalty per unit", unit: "$/unit", note: "Not modeled — lost_margin is the only cost of a stockout today" }
+      { key: "carrying", label: "Inventory carrying %", unit: "%", disabled: true, note: "Not modeled" },
+      { key: "otprem", label: "Overtime premium %", unit: "%", disabled: true, note: "Not modeled — no overtime lever yet" },
+      { key: "stockpen", label: "Stockout penalty per unit", unit: "$/unit", disabled: true, note: "Not modeled — lost_margin is the only cost of a stockout today" }
     ]},
     { group: "Inventory (advanced)", levers: [
-      { label: "Max inventory cap", unit: "units", note: "Not modeled — no cap enforced" }
+      { key: "maxcap", label: "Max inventory cap", unit: "units", disabled: true, note: "Not modeled — no cap enforced" }
     ]}
   ];
+
+  function leverFmt(lv, value) {
+    if (lv.discrete && lv.options) return lv.options[value] || lv.options[0];
+    if (lv.perResource) return (value * 100).toFixed(0) + "%";
+    if (lv.perFamily) return (value >= 0 ? "+" : "") + value + "%";
+    return (value >= 0 ? "+" : "") + value + (lv.unit === "months" ? " mo" : " " + lv.unit);
+  }
 
   function renderLevers(hostId, groups) {
     var host = document.getElementById(hostId);
@@ -708,13 +775,50 @@
         var row = document.createElement("div"); row.className = "lever";
         var head = document.createElement("div"); head.className = "lever__row";
         var lab = document.createElement("span"); lab.className = "lever__label"; lab.textContent = lv.label;
-        var un = document.createElement("span"); un.className = "lever__val"; un.textContent = lv.unit;
+        var un = document.createElement("span"); un.className = "lever__val";
+        un.textContent = lv.perResource ? "100%" : (lv.discrete && lv.options ? lv.options[0] : "0");
         head.appendChild(lab); head.appendChild(un);
-        var range = document.createElement("input"); range.type = "range"; range.className = "lever__range";
-        range.min = "0"; range.max = "100"; range.value = "50"; range.disabled = true;
-        range.setAttribute("aria-label", lv.label + " — not wired; client-side recompute is a later build (SCOPE §2 row 7)");
+
+        var input = document.createElement("input");
+        if (lv.disabled) {
+          input.type = "range"; input.className = "lever__range"; input.disabled = true;
+          input.min = "0"; input.max = "100"; input.value = "50";
+          input.setAttribute("aria-label", lv.label + " — not modeled in this engine");
+        } else if (lv.discrete && lv.options) {
+          input = document.createElement("select"); input.className = "lever__range lever__select";
+          lv.options.forEach(function (opt, i) {
+            var o = document.createElement("option"); o.value = String(i); o.textContent = opt;
+            if (i === 0) o.selected = true;
+            input.appendChild(o);
+          });
+          input.value = "0";
+          input.setAttribute("aria-label", lv.label);
+        } else {
+          input.type = "range"; input.className = "lever__range lever__range--live";
+          input.min = String(lv.min !== undefined ? lv.min : -50);
+          input.max = String(lv.max !== undefined ? lv.max : 50);
+          input.step = String(lv.step !== undefined ? lv.step : 1);
+          // hours is a factor on installed capacity; default 1.0 = identity
+          input.value = String(lv.perResource ? 1.0 : 0);
+          input.setAttribute("aria-label", lv.label);
+          if (lv.perResource) input.className += " lever__range--resource";
+          if (lv.perFamily) input.className += " lever__range--family";
+        }
+
+        // Range sliders fire `input` continuously; a native <select> fires
+        // `change` (not `input`) on a user pick. Listen to both.
+        input.addEventListener("input", function () { onLeverInput(); });
+        input.addEventListener("change", function () { onLeverInput(); });
+        function onLeverInput() {
+          if (lv.disabled) return;
+          LEVER_STATE[lv.key] = Number(input.value);
+          un.textContent = leverFmt(lv, LEVER_STATE[lv.key]);
+          row.setAttribute("data-dirty", "1");
+          applyLeversAndRecompute();
+        }
+
         var note = document.createElement("div"); note.className = "step__subrow"; note.textContent = lv.note;
-        row.appendChild(head); row.appendChild(range); row.appendChild(note);
+        row.appendChild(head); row.appendChild(input); row.appendChild(note);
         wrap.appendChild(row);
       });
       host.appendChild(wrap);
@@ -722,6 +826,59 @@
   }
   renderLevers("levergroups", TIER1);
   renderLevers("levergroups2", TIER2);
+
+  // Build the levers object for the engine from the current state.
+  function collectLevers() {
+    var levers = { volMult: 0, seasonShift: 0, rationRule: "throughput-per-constraint",
+      hours: {}, familyUplift: {}, priceDeltaPct: {}, vcDeltaPct: {}, openingDeltaPct: {} };
+    if (LEVER_STATE.volMult) levers.volMult = LEVER_STATE.volMult;
+    if (LEVER_STATE.seasonShift) levers.seasonShift = LEVER_STATE.seasonShift;
+    if (LEVER_STATE.rationRule !== undefined) levers.rationRule = ["throughput-per-constraint", "fair-share", "strategic-priority"][LEVER_STATE.rationRule];
+    // per-family sliders: a single shared lever maps to every family
+    if (LEVER_STATE.familyUplift) D.families.forEach(function (f) { levers.familyUplift[f.id] = LEVER_STATE.familyUplift; });
+    if (LEVER_STATE.priceDelta) D.families.forEach(function (f) { levers.priceDeltaPct[f.id] = LEVER_STATE.priceDelta; });
+    if (LEVER_STATE.vcDelta) D.families.forEach(function (f) { levers.vcDeltaPct[f.id] = LEVER_STATE.vcDelta; });
+    if (LEVER_STATE.openingDelta) D.families.forEach(function (f) { levers.openingDeltaPct[f.id] = LEVER_STATE.openingDelta; });
+    // hours lever is a FACTOR on installed capacity; default 1.0 = identity
+    D.resources.forEach(function (r) {
+      var factor = LEVER_STATE.hours !== undefined ? LEVER_STATE.hours : 1.0;
+      levers.hours[r.id] = r.monthly_available_hours * factor;
+    });
+    return levers;
+  }
+
+  function applyLeversAndRecompute() {
+    var levers = collectLevers();
+    var isDirty = Object.keys(LEVER_STATE).some(function (k) {
+      var v = LEVER_STATE[k];
+      return v !== undefined && Number(v) !== 0 && (k !== "hours" || Number(v) !== 1.0);
+    });
+    if (!isDirty) {
+      // All levers neutral → custom equals constrained (the shipped engine's
+      // constrained scenario, no lever changes).
+      D.scenarios.custom = D.scenarios.constrained;
+      D.provenance.custom = D.provenance.constrained;
+    } else {
+      var res = LEVER_ENGINE.recomputeScenario(D, levers, "custom");
+      D.scenarios.custom = res.scenario;
+      D.provenance.custom = res.provenance;
+    }
+    focus = "custom";
+    A.custom = agg("custom");
+    renderComparison();
+    renderGrid();
+    renderBullets();
+    renderFamilies();
+    buildTiles();
+    buildSummaryTable();
+    Array.prototype.forEach.call(document.getElementById("presets").children, function (c, i) {
+      c.setAttribute("aria-pressed", String(PRESETS[i].key === focus));
+    });
+    Array.prototype.forEach.call(tabHost.children, function (c, i) {
+      c.setAttribute("aria-pressed", String(SC[i] === focus));
+    });
+    // The scenario tabs list SC (3 shipped); custom is a focus, not a 4th.
+  }
 
   /* =========================================================================
      SECTION 7 — DRILL-DOWN GRID (m3) + 5-STEP PROVENANCE MODAL (shared)
@@ -1429,6 +1586,7 @@
       { html: '<span class="legend__swatch" style="background:var(--sop-color-chart-actual);opacity:0.85"></span>', text: "Base — solid" },
       { html: '<span class="legend__swatch" style="background:var(--sop-color-ink-soft)"></span>', text: "Upside — light solid" },
       { html: '<svg class="legend__swatch" viewBox="0 0 20 11"><rect width="20" height="11" fill="url(#hatch)"/></svg>', text: "Constrained — hatched" },
+      { html: '<span class="legend__swatch" style="background:var(--sop-color-brand);opacity:0.85"></span>', text: "Custom (levers) — brand" },
       { html: '<span class="legend__swatch" style="border:1px solid var(--sop-color-ink-soft)"></span>', text: "Demand (plan) — outline" },
       { html: '<span class="legend__swatch" style="background:var(--sop-color-bad)"></span>', text: "unmet demand" },
       { html: '<span class="delta delta--good">▲</span>', text: "better than Base" },
