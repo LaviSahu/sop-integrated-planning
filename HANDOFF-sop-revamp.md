@@ -3,6 +3,7 @@
 **Date:** 2026-08-13 (supersedes the earlier implementation-GO version).
 **Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH `github-lavisahu`).
 **Status:** implementation **DONE** — commit `30e84c3`, pushed. Working tree clean (one untracked exploratory script).
+**Approval:** Lavi reviewed the open dashboard and said **"looks good"** (2026-08-13) after a walkthrough of the headline → presets → drill-down → rollups → waterfall narrative.
 
 ---
 
