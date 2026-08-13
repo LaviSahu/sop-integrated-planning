@@ -1,4 +1,4 @@
-# HANDOFF — S&OP Cockpit Revamp (mockup 4 built, REJECTED — redesign needed before mockup 5)
+# HANDOFF — S&OP Cockpit Revamp (mockup 5 built + contrast-fixed; mockup 4 redesign still open)
 
 **Date:** 2026-08-13 (supersedes the earlier version of this file from the same day).
 **Repo:** `~/Documents/Aiwork/sop-integrated-planning` — branch `main`, remote `LaviSahu/sop-integrated-planning` (SSH).
@@ -30,7 +30,7 @@ redesign — this is exactly the tool for turning Lavi's "looks like AI slop" fe
 | **Mockup 2 — scenario comparison** | done, approved |
 | **Mockup 3 — levers + drill-down** | done, approved |
 | **Mockup 4 — KPI tiles** | built + verified working, **REJECTED on design — redo before proceeding** |
-| Mockup 5 — margin waterfall | not started — blocked on mockup 4's redesign |
+| Mockup 5 — margin waterfall | built + verified (click-sim 10/10), contrast-fixed; awaiting Lavi's verdict |
 | Implementation | not started. Do not start it. |
 
 ---
